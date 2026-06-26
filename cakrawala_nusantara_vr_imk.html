@@ -1,0 +1,1966 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cakrawala Nusantara — VR Interaktif</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ─── Design tokens ─── */
+:root{
+  --indigo-900:#0F1830; --indigo-700:#1B2A4A; --indigo-500:#2A3F66; --indigo-300:#4C628C;
+  --gold-700:#9C7522;   --gold-500:#C99A3D;   --gold-300:#E8C468;   --gold-100:#F6E6BD;
+  --terra-700:#8A4A2D;  --terra-500:#A85D3B;  --terra-300:#C98860;
+  --jade-700:#345248;   --jade-500:#4F7A6B;   --jade-300:#7FA899;
+  --andesit-700:#3F3B34;--andesit-500:#6B6358;--andesit-300:#9C9387;
+  --cream-100:#F3EAD8;  --cream-50:#FAF5EA;   --ink:#241A12;
+  --font-display:'Lora',serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--font-body);background:#060410;overflow:hidden;}
+
+/* ─── Screen / transition system ─── */
+.screen{
+  position:fixed;inset:0;display:none;z-index:1;
+  opacity:0;transform:scale(1.01);
+  transition:opacity .45s ease, transform .45s ease;
+}
+.screen.active{display:flex;opacity:1;transform:scale(1);}
+.screen.fade-out{opacity:0;transform:scale(.99);}
+
+/* ─── Shared reusable atoms ─── */
+.eyebrow{font-family:var(--font-mono);letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:700;}
+h1,h2,h3,h4{font-family:var(--font-display);margin:0;}
+.btn-primary{
+  background:var(--gold-500);color:var(--ink);font-weight:700;padding:11px 24px;
+  border-radius:999px;font-size:13px;letter-spacing:.02em;border:none;cursor:pointer;
+  font-family:var(--font-body);transition:transform .15s,box-shadow .15s;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 20px -6px rgba(201,154,61,.55);}
+.btn-ghost{
+  background:transparent;border:1.5px solid var(--andesit-300);color:var(--ink);
+  padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:var(--font-body);transition:background .15s;
+}
+.btn-ghost:hover{background:rgba(156,147,135,.12);}
+.pill{font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:5px 11px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;}
+.tag{font-family:var(--font-mono);font-size:11px;padding:5px 10px;border-radius:999px;}
+.tag.jade{background:var(--jade-300);color:var(--jade-700);}
+.tag.terra{background:var(--terra-300);color:var(--terra-700);}
+.tag.gold{background:var(--gold-100);color:var(--gold-700);}
+
+/* stars */
+.stars{position:absolute;inset:0;pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 8%  12%,rgba(255,255,255,.9),transparent),
+    radial-gradient(1px 1px at 22% 34%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1px 1px at 44%  8%,rgba(255,255,255,.8),transparent),
+    radial-gradient(1px 1px at 68% 19%,rgba(255,255,255,.9),transparent),
+    radial-gradient(1px 1px at 83% 52%,rgba(255,255,255,.6),transparent),
+    radial-gradient(1px 1px at 57% 78%,rgba(255,255,255,.8),transparent),
+    radial-gradient(1px 1px at 14% 68%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1px 1px at 91% 83%,rgba(255,255,255,.9),transparent),
+    radial-gradient(1px 1px at 35% 55%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 76% 40%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1px 1px at 50% 90%,rgba(255,255,255,.6),transparent),
+    radial-gradient(1px 1px at 3%  45%,rgba(255,255,255,.8),transparent);
+  opacity:.7;
+}
+.onb-roof{
+  width:140px;height:34px;
+  background:linear-gradient(180deg,var(--gold-300),var(--gold-700));
+  clip-path:polygon(50% 0%,100% 100%,0% 100%);
+  margin:14px auto 0;position:relative;
+}
+.onb-roof-base{width:176px;height:7px;margin:0 auto 0;background:var(--gold-500);border-radius:2px;}
+
+/* ══════════ SCREEN 1: ONBOARDING ══════════ */
+#scr-onboard{
+  flex-direction:column;align-items:center;justify-content:center;gap:0;
+  background:radial-gradient(ellipse at 50% 0%,#1c2c52,#0F1830 60%,#0a1224 100%);
+  color:var(--cream-100);
+}
+.onb-brand{position:relative;z-index:2;text-align:center;margin-bottom:34px;}
+
+.kalib-card{
+  position:relative;z-index:2;width:430px;
+  background:var(--cream-100);color:var(--ink);
+  border-radius:16px;padding:28px 32px;
+  box-shadow:0 28px 70px -18px rgba(0,0,0,.7),0 0 0 1px rgba(201,154,61,.15);
+}
+.kalib-card hr{border:none;border-top:1px solid var(--andesit-300);margin:14px 0 18px;}
+.height-row{display:flex;align-items:center;justify-content:center;gap:28px;margin:14px 0;}
+.height-slider-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
+input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:90px;accent-color:var(--gold-700);cursor:pointer;}
+.height-val{font-family:var(--font-mono);font-weight:700;font-size:20px;text-align:center;line-height:1;}
+.opt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0;}
+.opt{
+  border:1.5px solid var(--andesit-300);border-radius:10px;padding:10px 5px;
+  font-size:10px;font-family:var(--font-mono);font-weight:600;cursor:pointer;
+  transition:.15s;line-height:1.5;text-align:center;background:transparent;
+}
+.opt:hover{border-color:var(--gold-500);}
+.opt.on{background:var(--jade-700);color:var(--cream-100);border-color:var(--jade-700);}
+.kalib-actions{display:flex;gap:10px;justify-content:center;margin-top:16px;}
+.ctrl-hints{
+  position:absolute;bottom:26px;left:0;right:0;
+  display:flex;justify-content:space-between;padding:0 30px;
+  font-family:var(--font-mono);font-size:11px;color:rgba(243,234,216,.8);
+  pointer-events:none;z-index:2;
+}
+.ctrl-dot{
+  width:30px;height:30px;border-radius:50%;background:#1d2a4a;
+  border:1px solid var(--gold-500);display:inline-flex;align-items:center;
+  justify-content:center;font-size:13px;
+}
+
+/* ══════════ SCREEN 2: MAP ══════════ */
+#scr-map{
+  flex-direction:row;align-items:center;justify-content:center;gap:48px;
+  background:radial-gradient(ellipse at 75% 40%,#1c2c52,#0F1830 70%);
+  color:var(--cream-100);
+}
+.map-head{position:absolute;top:32px;left:44px;}
+.globe{
+  width:290px;height:290px;border-radius:50%;flex:none;position:relative;
+  background:radial-gradient(circle at 38% 32%,#25406f,#142243 75%);
+  border:1.5px solid rgba(201,154,61,.55);
+  box-shadow:0 0 40px 8px rgba(201,154,61,.08),inset 0 0 40px rgba(0,0,0,.4);
+}
+.globe .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(201,154,61,.2);}
+.globe .ring.r2{inset:22px;}
+.island{position:absolute;background:var(--jade-700);border-radius:50%;opacity:.85;}
+.marker{
+  position:absolute;width:11px;height:11px;border-radius:50%;
+  border:2px solid var(--gold-300);background:var(--terra-500);
+  box-shadow:0 0 0 4px rgba(201,154,61,.2);
+  animation:pulse 2.2s infinite;cursor:pointer;
+  transition:transform .15s;
+}
+.marker:hover{transform:scale(1.4);}
+.marker.locked{background:var(--andesit-500);border-color:var(--andesit-300);animation:none;cursor:not-allowed;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(201,154,61,.2);}50%{box-shadow:0 0 0 10px rgba(201,154,61,.04);}}
+.module-card{
+  width:320px;background:var(--cream-100);color:var(--ink);border-radius:14px;
+  padding:22px 24px;box-shadow:0 25px 55px -18px rgba(0,0,0,.6);
+}
+.module-thumb{
+  height:88px;border-radius:8px;
+  background:linear-gradient(160deg,#2a3f66,#1b2a4a);
+  position:relative;overflow:hidden;margin-bottom:12px;
+  display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;
+}
+.silhouette{
+  width:48px;height:60px;background:#0c1326;
+  clip-path:polygon(50% 0%,65% 18%,80% 18%,80% 32%,90% 32%,90% 100%,10% 100%,10% 32%,20% 32%,20% 18%,35% 18%);
+}
+.module-meta{font-family:var(--font-mono);font-size:11px;color:var(--andesit-500);margin:8px 0 4px;}
+.module-tags{display:flex;gap:8px;margin:10px 0 14px;}
+.module-card p{font-size:13px;line-height:1.55;color:var(--andesit-700);}
+
+/* ══════════ SCREEN 3: 3D EXPLORE ══════════ */
+#scr-explore{position:fixed;inset:0;display:none;z-index:1;}
+#scr-explore.active{display:block;opacity:1;transform:none;}
+#vr-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+
+/* VR start overlay */
+#vr-overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(26,22,10,.88),rgba(6,4,16,.96));
+  z-index:20;cursor:pointer;gap:10px;user-select:none;
+}
+.vr-icon-ring{
+  width:68px;height:68px;border-radius:50%;
+  border:2px solid rgba(232,196,104,.55);
+  display:flex;align-items:center;justify-content:center;margin-bottom:6px;
+  box-shadow:0 0 24px rgba(232,196,104,.12);
+}
+#vr-overlay h1{font-size:20px;color:var(--cream-100);}
+#vr-overlay .sub{font-size:12px;color:rgba(243,234,216,.45);font-family:var(--font-mono);margin-top:2px;}
+#vr-overlay .keys{
+  margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+}
+.key-badge{
+  background:rgba(30,22,8,.7);border:1px solid rgba(232,196,104,.35);
+  border-radius:6px;padding:5px 10px;font-family:var(--font-mono);font-size:10px;
+  color:rgba(232,196,104,.75);letter-spacing:.06em;
+}
+
+/* Crosshair */
+#crosshair{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;z-index:10;display:none;
+}
+
+/* Mission HUD */
+#mission-hud{
+  position:absolute;top:18px;left:18px;z-index:15;pointer-events:none;display:none;
+  width:200px;background:rgba(15,24,48,.88);border:1px solid rgba(201,154,61,.4);
+  border-radius:12px;padding:12px 14px;backdrop-filter:blur(4px);
+}
+#mission-hud .eyebrow{color:var(--gold-300);}
+#mission-hud ul{list-style:none;margin:8px 0 0;padding:0;font-size:12px;display:flex;flex-direction:column;gap:6px;color:var(--cream-100);}
+#mission-hud li{display:flex;align-items:center;gap:7px;}
+.check{width:14px;height:14px;border:1.5px solid var(--gold-300);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;flex:none;transition:.3s;}
+.check.done{background:var(--jade-500);border-color:var(--jade-500);}
+
+/* Timer */
+#timer-hud{
+  position:absolute;top:18px;right:18px;z-index:15;pointer-events:none;display:none;
+  font-family:var(--font-mono);font-size:11px;background:rgba(15,24,48,.88);
+  border:1px solid rgba(201,154,61,.4);border-radius:999px;
+  padding:7px 14px;display:none;align-items:center;gap:6px;color:var(--cream-100);
+  backdrop-filter:blur(4px);
+}
+.timer-dot{width:6px;height:6px;border-radius:50%;background:var(--gold-300);animation:blink 1.2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* Compass */
+#compass-hud{
+  position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:15;
+  pointer-events:none;display:none;
+  background:rgba(15,24,48,.82);border:1px solid rgba(201,154,61,.35);
+  border-radius:999px;padding:5px 16px;
+  font-family:var(--font-mono);font-size:11px;color:var(--cream-100);
+  backdrop-filter:blur(4px);letter-spacing:.08em;
+}
+#compass-inner{display:flex;align-items:center;gap:10px;}
+.compass-needle{width:8px;height:8px;border-radius:50%;background:var(--terra-500);flex:none;}
+#compass-dir{color:var(--gold-300);font-weight:700;}
+
+/* Hint bar */
+#hud-hint{
+  position:absolute;bottom:72px;left:50%;transform:translateX(-50%);z-index:15;
+  pointer-events:none;display:none;
+  background:rgba(15,24,48,.75);border:0.5px solid rgba(201,154,61,.3);
+  border-radius:8px;padding:5px 16px;
+  color:rgba(232,196,104,.7);font-size:11px;font-family:var(--font-mono);
+  letter-spacing:.04em;white-space:nowrap;backdrop-filter:blur(3px);
+}
+
+/* Position readout */
+#hud-pos{
+  position:absolute;bottom:18px;left:18px;z-index:15;pointer-events:none;display:none;
+  background:rgba(15,24,48,.72);border:0.5px solid rgba(201,154,61,.2);
+  border-radius:8px;padding:5px 12px;
+  font-size:10px;font-family:var(--font-mono);
+  color:rgba(232,196,104,.55);display:none;gap:12px;align-items:center;
+}
+
+/* Minimap */
+#minimap{
+  position:absolute;bottom:18px;right:18px;z-index:15;display:none;
+  width:110px;height:110px;border-radius:10px;
+  background:rgba(15,24,48,.88);border:1px solid rgba(201,154,61,.4);
+  overflow:hidden;backdrop-filter:blur(4px);
+}
+#minimap canvas{width:110px;height:110px;display:block;}
+.minimap-label{
+  position:absolute;top:4px;left:6px;font-family:var(--font-mono);
+  font-size:8px;color:rgba(232,196,104,.6);letter-spacing:.06em;
+}
+
+/* Gaze / hotspot progress ring */
+#gaze-ring{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;z-index:11;display:none;
+  width:52px;height:52px;
+}
+#gaze-ring svg{position:absolute;inset:0;transform:rotate(-90deg);}
+#gaze-ring circle.bg{stroke:rgba(255,255,255,.2);}
+#gaze-ring circle.fg{stroke:var(--gold-300);stroke-dasharray:138;stroke-dashoffset:138;transition:stroke-dashoffset .05s linear;}
+
+/* Proximity prompt */
+#proximity-prompt{
+  position:absolute;bottom:130px;left:50%;transform:translateX(-50%);
+  z-index:15;pointer-events:none;display:none;
+  background:rgba(15,24,48,.9);border:1px solid var(--gold-500);
+  border-radius:10px;padding:10px 20px;
+  color:var(--cream-100);font-size:13px;text-align:center;
+  animation:promptPulse 1.5s ease-in-out infinite;
+}
+@keyframes promptPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,154,61,.4);}50%{box-shadow:0 0 0 8px rgba(201,154,61,.0);}}
+#proximity-prompt .prompt-key{
+  display:inline-block;background:var(--gold-500);color:var(--ink);
+  border-radius:5px;padding:1px 8px;font-family:var(--font-mono);
+  font-size:11px;font-weight:700;margin:0 4px;
+}
+
+/* Wrist trigger */
+#wrist-trigger{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  z-index:16;width:44px;height:44px;border-radius:50%;
+  background:rgba(15,24,48,.88);border:1.5px solid var(--gold-500);
+  display:none;align-items:center;justify-content:center;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  pointer-events:auto;
+}
+#wrist-trigger:hover{transform:translateX(-50%) scale(1.1);box-shadow:0 0 16px rgba(201,154,61,.35);}
+
+/* Wrist menu */
+#wrist-menu{
+  position:absolute;bottom:72px;left:50%;
+  transform:translateX(-50%) translateY(14px) scale(.95);
+  z-index:17;width:370px;
+  background:var(--indigo-700);border:1.5px solid var(--gold-500);
+  border-radius:16px;padding:18px 22px;
+  box-shadow:0 28px 65px -18px rgba(0,0,0,.7);
+  opacity:0;pointer-events:none;transition:.25s cubic-bezier(.34,1.56,.64,1);
+  color:var(--cream-100);
+}
+#wrist-menu.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1);pointer-events:auto;}
+.wrist-tabs{display:flex;gap:8px;margin-bottom:12px;}
+.wtab{
+  font-family:var(--font-mono);font-size:11px;font-weight:700;padding:7px 13px;
+  border-radius:8px;background:transparent;color:var(--cream-100);
+  border:1px solid rgba(232,196,104,.2);cursor:pointer;transition:.15s;
+}
+.wtab:hover{background:rgba(201,154,61,.1);}
+.wtab.active{background:var(--gold-500);color:var(--ink);border-color:var(--gold-500);}
+#wrist-menu hr{border:none;border-top:1px solid rgba(201,154,61,.25);margin:10px 0;}
+.wm-progress-bar{height:6px;background:var(--indigo-500);border-radius:999px;overflow:hidden;margin-top:8px;}
+.wm-progress-fill{height:100%;background:var(--gold-500);border-radius:999px;transition:width .5s ease;}
+.wm-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;border-radius:8px;margin-bottom:7px;font-size:13px;
+}
+.wm-item.found{background:rgba(79,122,107,.3);}
+.wm-item.pending{background:rgba(42,63,102,.45);}
+.wm-actions{display:flex;gap:10px;margin-top:12px;}
+.btn-ghost-light{
+  background:transparent;border:1.5px solid rgba(232,196,104,.4);color:var(--cream-100);
+  padding:8px 14px;border-radius:999px;font-size:12px;font-weight:600;
+  cursor:pointer;font-family:var(--font-body);flex:1;transition:background .15s;
+}
+.btn-ghost-light:hover{background:rgba(232,196,104,.1);}
+
+/* NPC Dialogue */
+#npc-dialogue{
+  position:absolute;left:50%;bottom:88px;
+  transform:translateX(-50%) translateY(8px);
+  z-index:15;width:56%;
+  background:rgba(15,24,48,.94);border:1px solid rgba(201,154,61,.5);
+  border-radius:12px;padding:14px 18px;
+  opacity:0;pointer-events:none;transition:.35s;
+  color:var(--cream-100);
+}
+#npc-dialogue.show{opacity:1;transform:translateX(-50%) translateY(0);animation:floatUI 3.5s ease-in-out infinite;}
+@keyframes floatUI{0%,100%{margin-top:0;}50%{margin-top:-6px;}}
+#npc-dialogue .who{color:var(--gold-300);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;margin-bottom:7px;}
+
+/* Toast */
+#artifact-toast{
+  position:absolute;top:76px;left:50%;transform:translateX(-50%) translateY(-8px);
+  z-index:18;background:rgba(53,82,72,.97);border:1px solid var(--jade-300);
+  border-radius:10px;padding:11px 22px;
+  color:var(--cream-100);font-size:13px;font-family:var(--font-mono);
+  opacity:0;pointer-events:none;transition:.3s;text-align:center;
+  white-space:nowrap;
+}
+#artifact-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Wrist tab panels */
+.wrist-panel{display:none;}
+.wrist-panel.active{display:block;}
+
+/* Minimap tab */
+#wm-peta{font-size:12px;}
+#wm-minimap-big{
+  width:100%;height:150px;background:var(--indigo-900);
+  border-radius:8px;margin:8px 0;position:relative;overflow:hidden;
+  border:1px solid rgba(201,154,61,.2);
+}
+#wm-minimap-big canvas{width:100%;height:100%;display:block;}
+
+/* Settings tab */
+#wm-set{font-size:12px;}
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(201,154,61,.15);}
+.toggle{width:36px;height:20px;background:var(--jade-500);border-radius:10px;position:relative;cursor:pointer;}
+.toggle::after{content:"";position:absolute;left:16px;top:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s;}
+.toggle.off{background:var(--andesit-500);}
+.toggle.off::after{left:3px;}
+
+/* ══════════ SCREEN 4: ARTIFACT INSPECT ══════════ */
+#scr-artifact{
+  flex-direction:row;align-items:center;justify-content:center;gap:0;
+  background:radial-gradient(ellipse at 40% 50%,#1c2c52,#0a1224 75%);
+  color:var(--cream-100);
+}
+.inspect-pill{position:absolute;top:24px;left:24px;background:var(--terra-500);color:var(--cream-100);}
+.artifact-col{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.artifact-stage{
+  width:300px;height:300px;position:relative;perspective:700px;
+  cursor:grab;flex:none;
+}
+.artifact-stage:active{cursor:grabbing;}
+.orbit-ring{position:absolute;inset:0;border:1px dashed rgba(201,154,61,.35);border-radius:50%;}
+.orbit-ring.r2{inset:38px;border-style:dotted;}
+#pot3d{
+  position:absolute;left:50%;top:46%;width:120px;height:140px;
+  transform:translate(-50%,-50%);transform-style:preserve-3d;
+}
+.face{
+  position:absolute;inset:0;border-radius:50% 50% 42% 42% / 55% 55% 45% 45%;
+  background:radial-gradient(circle at 35% 25%,#e08a52,#a85d3b 70%);
+}
+.face.back{transform:rotateY(180deg);background:radial-gradient(circle at 65% 25%,#c06a3c,#8a4a2d 70%);}
+.shadow-disc{
+  position:absolute;bottom:5%;left:50%;transform:translateX(-50%);
+  width:160px;height:26px;background:radial-gradient(ellipse,rgba(0,0,0,.5),transparent 75%);
+}
+.grab-hint{font-family:var(--font-mono);font-size:11px;color:var(--gold-300);text-align:center;}
+.artifact-info{
+  width:340px;background:var(--cream-100);color:var(--ink);border-radius:14px;
+  padding:24px 26px;box-shadow:0 28px 65px -18px rgba(0,0,0,.6);margin-left:44px;
+}
+.artifact-info hr{border:none;border-top:1px solid var(--andesit-300);margin:10px 0 14px;}
+.artifact-tags{display:flex;gap:8px;margin-bottom:14px;}
+.spec-row{display:flex;justify-content:space-between;font-size:12px;padding:8px 0;border-top:1px solid var(--andesit-300);}
+.artifact-nav{display:flex;gap:10px;margin-top:16px;}
+
+/* ══════════ SCREEN 5: QUIZ ══════════ */
+#scr-quiz{
+  flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 0%,#1c2c52,#0a1224 70%);
+  color:var(--cream-100);padding:40px;
+}
+.quiz-pill{position:absolute;top:22px;left:50%;transform:translateX(-50%);background:var(--jade-700);color:var(--cream-100);}
+.quiz-counter{position:absolute;top:22px;right:50%;transform:translateX(190px);font-family:var(--font-mono);font-size:11px;opacity:.65;}
+.quiz-card{
+  width:620px;background:var(--cream-100);color:var(--ink);
+  border-radius:16px;padding:30px 34px;
+  box-shadow:0 28px 65px -18px rgba(0,0,0,.6);
+}
+.quiz-q{font-size:18px;text-align:center;margin-bottom:18px;}
+.quiz-feedback{
+  display:none;font-size:12px;padding:9px 14px;border-radius:8px;
+  margin-bottom:16px;text-align:center;font-weight:600;
+}
+.quiz-feedback.correct{background:#dcefe6;color:var(--jade-700);}
+.quiz-feedback.wrong{background:#f3dcd4;color:var(--terra-700);}
+.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.opt-card{
+  border:1.5px solid var(--andesit-300);border-radius:10px;padding:14px 16px;
+  display:flex;gap:10px;align-items:flex-start;font-size:13px;cursor:pointer;transition:.15s;
+}
+.opt-card:hover{border-color:var(--gold-500);background:rgba(201,154,61,.05);}
+.opt-card.correct{background:var(--jade-500);color:var(--cream-100);border-color:var(--jade-500);}
+.opt-card.incorrect{opacity:.4;}
+.opt-letter{
+  width:26px;height:26px;border-radius:50%;background:var(--cream-50);
+  border:1px solid var(--andesit-300);display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:700;flex:none;
+}
+.quiz-foot{text-align:center;margin-top:18px;}
+
+/* ══════════ SCREEN 6: BADGE ══════════ */
+#scr-badge{
+  flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 30%,#20305c,#0a1224 75%);
+  color:var(--cream-100);text-align:center;gap:22px;
+}
+.diamond{position:absolute;width:10px;height:10px;background:var(--gold-500);transform:rotate(45deg);}
+.badge-medal{
+  width:190px;height:190px;border-radius:50%;border:3px solid var(--gold-500);
+  background:radial-gradient(circle,#1b2a4a,#0F1830 75%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 0 70px 12px rgba(201,154,61,.2);position:relative;
+}
+.badge-ring{position:absolute;inset:-16px;border:1px solid rgba(201,154,61,.25);border-radius:50%;}
+.badge-stars{color:var(--gold-300);font-size:15px;letter-spacing:2px;margin-top:4px;}
+.stat-row{display:flex;gap:14px;}
+.stat-card{
+  background:var(--indigo-700);border:1px solid var(--gold-500);
+  border-radius:10px;padding:13px 26px;min-width:95px;
+}
+.stat-card .num{font-family:var(--font-display);font-size:24px;color:var(--gold-300);}
+.stat-card .lbl{font-size:10px;font-family:var(--font-mono);opacity:.75;margin-top:3px;line-height:1.3;}
+.badge-actions{display:flex;gap:12px;}
+.badge-next-modules{
+  display:flex;gap:12px;
+}
+.next-mod{
+  background:var(--indigo-700);border:1px solid rgba(201,154,61,.3);
+  border-radius:10px;padding:12px 16px;text-align:center;width:130px;
+  cursor:pointer;transition:.15s;
+}
+.next-mod:hover{border-color:var(--gold-500);}
+.next-mod .mod-icon{font-size:24px;margin-bottom:4px;}
+.next-mod .mod-name{font-size:11px;font-family:var(--font-mono);color:var(--gold-300);}
+.next-mod .mod-lock{font-size:10px;color:var(--andesit-300);margin-top:2px;}
+
+/* ── VR Controller Sticks (fixed overlay) ── */
+#vr-controllers{
+  position:absolute;inset:0;pointer-events:none;z-index:12;display:none;
+}
+.ctrl-hand{
+  position:absolute;bottom:0;width:160px;height:200px;
+}
+.ctrl-hand.left { left:4%; }
+.ctrl-hand.right{ right:4%; }
+.ctrl-hand canvas{ width:100%;height:100%;display:block; }
+.screen.active{animation:screenIn .45s ease forwards;}
+@keyframes screenIn{from{opacity:0;transform:scale(1.015);}to{opacity:1;transform:scale(1);}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 1: ONBOARDING + KALIBRASI
+══════════════════════════════════════════════════════ -->
+<div class="screen active" id="scr-onboard">
+  <div class="stars"></div>
+
+  <div class="onb-brand" style="position:relative;z-index:2;text-align:center;margin-bottom:34px;">
+    <span class="eyebrow" style="color:var(--gold-300);font-size:12px;">CAKRAWALA NUSANTARA</span>
+    <p style="font-style:italic;font-size:12px;opacity:.65;color:var(--cream-100);margin-top:5px;">
+      Wahana Pembelajaran Imersif Sejarah &amp; Budaya Nusantara
+    </p>
+    <div class="onb-roof"></div>
+    <div class="onb-roof-base"></div>
+  </div>
+
+  <div class="kalib-card">
+    <h2 style="font-size:22px;text-align:center;">Kalibrasi Awal</h2>
+    <p style="font-size:12px;text-align:center;color:var(--andesit-700);margin-top:6px;">Sesuaikan preferensi untuk pengalaman terbaik</p>
+    <hr/>
+    <!-- Height calibration -->
+    <div style="font-size:11px;font-family:var(--font-mono);color:var(--andesit-500);margin-bottom:6px;">TINGGI PANDANG</div>
+    <div class="height-row">
+      <div class="height-slider-wrap">
+        <input id="heightSlider" class="vert" type="range" min="150" max="190" value="165"/>
+        <div class="height-val"><span id="heightVal">165</span><small style="font-size:9px;font-weight:400;display:block;opacity:.7;">CM</small></div>
+      </div>
+      <!-- Silhouette indicator -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:16px;height:68px;background:linear-gradient(180deg,var(--andesit-300),var(--andesit-500));border-radius:8px 8px 3px 3px;"></div>
+        <div style="font-size:9px;font-family:var(--font-mono);color:var(--andesit-500);">SKALA</div>
+      </div>
+    </div>
+    <!-- Options -->
+    <div style="font-size:11px;font-family:var(--font-mono);color:var(--andesit-500);margin-bottom:6px;">KONTROL &amp; AKSESIBILITAS</div>
+    <div class="opt-grid">
+      <div class="opt on">Smooth<br>Locomotion</div>
+      <div class="opt">Snap<br>Rotation</div>
+      <div class="opt on">Getaran<br>Haptic</div>
+      <div class="opt on">Subtitle<br>Wajib</div>
+    </div>
+    <div class="kalib-actions">
+      <button class="btn-primary" onclick="goTo('map')">MULAI KALIBRASI</button>
+      <button class="btn-ghost" onclick="goTo('map')">Lewati</button>
+    </div>
+  </div>
+
+  <!-- Status pill -->
+  <div style="position:absolute;top:18px;right:18px;z-index:3;">
+    <span class="pill" style="background:rgba(79,122,107,.28);color:var(--jade-300);border:1px solid var(--jade-500);">● HEADSET OK</span>
+  </div>
+  <!-- Bottom control hints -->
+  <div class="ctrl-hints">
+    <span><span class="ctrl-dot">◎</span> &nbsp;Trigger — Pilih objek</span>
+    <span>Grip — Genggam &amp; putar &nbsp;<span class="ctrl-dot">◎</span></span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 2: PETA DUNIA
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="scr-map">
+  <div class="stars"></div>
+
+  <div class="map-head">
+    <span class="eyebrow" style="color:var(--terra-300);">PETA DUNIA</span>
+    <h2 style="font-size:24px;color:var(--cream-100);margin-top:4px;">Pilih Modul Eksplorasi</h2>
+    <div class="onb-roof" style="margin:12px 0 0;"></div>
+    <div class="onb-roof-base" style="margin:0;"></div>
+  </div>
+
+  <!-- Globe -->
+  <div class="globe" style="position:relative;z-index:2;">
+    <div class="ring"></div>
+    <div class="ring r2"></div>
+    <div class="island" style="left:16%;top:40%;width:115px;height:46px;"></div>
+    <div class="island" style="left:43%;top:52%;width:88px;height:34px;"></div>
+    <div class="island" style="left:65%;top:46%;width:72px;height:30px;"></div>
+    <!-- Active marker -->
+    <div class="marker" style="left:21%;top:36%;" onclick="selectModule('trowulan')" title="Trowulan"></div>
+    <!-- Locked markers -->
+    <div class="marker locked" style="left:48%;top:48%;" title="Borobudur — Segera Hadir"></div>
+    <div class="marker locked" style="left:70%;top:43%;" title="Sangiran — Segera Hadir"></div>
+  </div>
+
+  <!-- Module card -->
+  <div class="module-card" id="module-card" style="position:relative;z-index:2;">
+    <h3 style="font-size:19px;">Trowulan — Pusat Majapahit</h3>
+    <div class="module-thumb"><div class="silhouette"></div></div>
+    <div class="module-meta">ABAD XIV M — ERA HAYAM WURUK</div>
+    <p>Jelajahi alun-alun kerajaan, temui abdi istana, dan temukan 3 artefak kunci dalam misi pertamamu.</p>
+    <div class="module-tags">
+      <span class="tag jade">★ 15–20 MENIT</span>
+      <span class="tag terra">PEMULA</span>
+    </div>
+    <button class="btn-primary" style="width:100%;padding:13px;" onclick="startExplore()">MULAI EKSPLORASI →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 3: 3D EXPLORATION (Three.js)
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="scr-explore">
+  <canvas id="vr-canvas"></canvas>
+
+  <!-- Start overlay -->
+  <div id="vr-overlay">
+    <div class="vr-icon-ring">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(232,196,104,.9)" stroke-width="1.8" stroke-linecap="round">
+        <polygon points="5,3 19,12 5,21" fill="rgba(232,196,104,.75)" stroke="none"/>
+      </svg>
+    </div>
+    <h1>Masuk ke Trowulan</h1>
+    <p class="sub">Klik untuk mengunci kursor &amp; mulai berjelajah</p>
+    <div class="keys">
+      <span class="key-badge">W A S D</span>
+      <span class="key-badge">MOUSE LOOK</span>
+      <span class="key-badge">SHIFT = LARI</span>
+      <span class="key-badge">E = INTERAKSI</span>
+      <span class="key-badge">ESC = PAUSE</span>
+    </div>
+  </div>
+
+  <!-- Crosshair -->
+  <svg id="crosshair" width="20" height="20" viewBox="0 0 20 20">
+    <line x1="10" y1="3" x2="10" y2="8"  stroke="rgba(232,196,104,.7)" stroke-width="1.4"/>
+    <line x1="10" y1="12" x2="10" y2="17" stroke="rgba(232,196,104,.7)" stroke-width="1.4"/>
+    <line x1="3" y1="10" x2="8"  y2="10" stroke="rgba(232,196,104,.7)" stroke-width="1.4"/>
+    <line x1="12" y1="10" x2="17" y2="10" stroke="rgba(232,196,104,.7)" stroke-width="1.4"/>
+    <circle cx="10" cy="10" r="1" fill="rgba(232,196,104,.6)"/>
+  </svg>
+
+  <!-- Gaze ring (shows when near interactable) -->
+  <div id="gaze-ring">
+    <svg viewBox="0 0 52 52"><circle class="bg" cx="26" cy="26" r="22" fill="none" stroke-width="2.5"/><circle class="fg" cx="26" cy="26" r="22" fill="none" stroke-width="2.5"/></svg>
+  </div>
+
+  <!-- Mission HUD -->
+  <div id="mission-hud">
+    <span class="eyebrow">MISI: TROWULAN</span>
+    <ul>
+      <li><span class="check" id="chk-gerabah">○</span> Gerabah Istana</li>
+      <li><span class="check done" id="chk-prasasti">✓</span> Prasasti Batu</li>
+      <li><span class="check done" id="chk-arca">✓</span> Arca Penjaga</li>
+    </ul>
+  </div>
+
+  <!-- Timer -->
+  <div id="timer-hud">
+    <span class="timer-dot"></span>
+    <span id="timer-label">12:48</span>&nbsp;TERSISA
+  </div>
+
+  <!-- Compass -->
+  <div id="compass-hud">
+    <div id="compass-inner">
+      <span class="compass-needle"></span>
+      <span id="compass-dir">U</span>
+      <span id="compass-deg" style="opacity:.6;">0°</span>
+    </div>
+  </div>
+
+  <!-- Hint bar -->
+  <div id="hud-hint">WASD = Gerak &nbsp;·&nbsp; Mouse = Lihat &nbsp;·&nbsp; Shift = Lari &nbsp;·&nbsp; E = Interaksi &nbsp;·&nbsp; Tab = Menu Gelang</div>
+
+  <!-- Position -->
+  <div id="hud-pos">
+    <span id="px">X 0</span>
+    <span id="pz">Z 0</span>
+    <span id="spd" style="color:var(--gold-300);">Jalan</span>
+  </div>
+
+  <!-- Minimap -->
+  <div id="minimap">
+    <span class="minimap-label">PETA MINI</span>
+    <canvas id="minimap-canvas" width="110" height="110"></canvas>
+  </div>
+
+  <!-- Proximity prompt -->
+  <div id="proximity-prompt">
+    <span class="prompt-key">E</span> Ambil Artefak
+  </div>
+
+  <!-- Wrist trigger button -->
+  <button id="wrist-trigger" title="Menu Gelang (Tab)">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gold-300)" stroke-width="2">
+      <rect x="3" y="9" width="18" height="9" rx="2"/>
+      <circle cx="12" cy="13.5" r="1.6" fill="var(--gold-300)" stroke="none"/>
+    </svg>
+  </button>
+
+  <!-- Wrist menu -->
+  <div id="wrist-menu">
+    <div class="wrist-tabs">
+      <button class="wtab active" onclick="switchWristTab('misi',this)">MISI</button>
+      <button class="wtab" onclick="switchWristTab('peta',this)">PETA</button>
+      <button class="wtab" onclick="switchWristTab('set',this)">PENGATURAN</button>
+      <button onclick="closeWristMenu()" style="margin-left:auto;background:transparent;border:none;color:rgba(232,196,104,.55);font-size:17px;cursor:pointer;padding:0 2px;line-height:1;" title="Tutup menu">✕</button>
+    </div>
+
+    <!-- Tab: MISI -->
+    <div class="wrist-panel active" id="wm-misi">
+      <span class="eyebrow" style="color:var(--gold-300);">MENU GELANG</span>
+      <hr/>
+      <div style="font-size:12px;opacity:.8;margin-bottom:10px;">Modul Aktif: <strong>Trowulan — Pusat Majapahit</strong></div>
+      <div class="wm-item found"><span>✓ Prasasti Batu</span><span style="font-family:var(--font-mono);font-size:11px;">Ditemukan</span></div>
+      <div class="wm-item found"><span>✓ Arca Penjaga</span><span style="font-family:var(--font-mono);font-size:11px;">Ditemukan</span></div>
+      <div class="wm-item pending" id="wm-gerabah"><span>□ Gerabah Istana</span><span style="font-family:var(--font-mono);font-size:11px;">Belum ditemukan</span></div>
+      <div style="font-size:11px;font-family:var(--font-mono);display:flex;justify-content:space-between;margin-top:8px;">
+        <span>Progres Misi</span><span id="wm-progress-label">2 / 3 Artefak</span>
+      </div>
+      <div class="wm-progress-bar"><div class="wm-progress-fill" id="wm-progress-fill" style="width:66%;"></div></div>
+      <div class="wm-actions">
+        <button class="btn-ghost-light">PANDUAN</button>
+        <button class="btn-ghost-light" onclick="exitExplore()">↩ KELUAR</button>
+      </div>
+    </div>
+
+    <!-- Tab: PETA -->
+    <div class="wrist-panel" id="wm-peta">
+      <span class="eyebrow" style="color:var(--gold-300);">PETA AREA TROWULAN</span>
+      <hr/>
+      <div id="wm-minimap-big"><canvas id="minimap-big-canvas" width="326" height="150"></canvas></div>
+      <div style="font-size:11px;font-family:var(--font-mono);opacity:.6;text-align:center;">
+        🔴 Posisi kamu &nbsp;·&nbsp; ⭐ Artefak &nbsp;·&nbsp; 🏛 Candi
+      </div>
+    </div>
+
+    <!-- Tab: PENGATURAN -->
+    <div class="wrist-panel" id="wm-set">
+      <span class="eyebrow" style="color:var(--gold-300);">PENGATURAN SESI</span>
+      <hr/>
+      <div class="set-row"><span style="font-size:13px;">Subtitle</span><div class="toggle" id="tog-sub" onclick="toggleSetting(this)"></div></div>
+      <div class="set-row"><span style="font-size:13px;">Haptic Feedback</span><div class="toggle" id="tog-haptic" onclick="toggleSetting(this)"></div></div>
+      <div class="set-row"><span style="font-size:13px;">Tampilkan Minimap</span><div class="toggle" id="tog-map" onclick="toggleSetting(this)"></div></div>
+      <div class="set-row"><span style="font-size:13px;">Ambient Sound</span><div class="toggle" id="tog-snd" onclick="toggleSetting(this)"></div></div>
+      <div style="margin-top:14px;">
+        <div style="font-size:11px;font-family:var(--font-mono);color:var(--andesit-300);margin-bottom:6px;">SENSITIVITAS KAMERA</div>
+        <input type="range" min="1" max="5" value="3" id="cam-sens" style="width:100%;accent-color:var(--gold-700);" oninput="camSens=this.value*0.0006"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- NPC dialogue -->
+  <div id="npc-dialogue">
+    <div class="who">ABDI ISTANA · KEPALA PENGRAJIN</div>
+    <div style="font-size:13px;line-height:1.6;">
+      "Selamat datang di alun-alun Trowulan. Carilah
+      <strong style="color:var(--gold-300);">gerabah istana</strong>
+      yang tersembunyi di dekat reruntuhan — dekati dan tekan
+      <strong style="color:var(--gold-300);">[E]</strong> untuk mendengar kisahnya."
+    </div>
+  </div>
+
+  <!-- Artifact found toast -->
+  <div id="artifact-toast">⬡ &nbsp;Artefak ditemukan — Gerabah Istana</div>
+
+  <!-- VR Controller Sticks -->
+  <div id="vr-controllers">
+    <div class="ctrl-hand left" ><canvas id="ctrl-left"  width="160" height="200"></canvas></div>
+    <div class="ctrl-hand right"><canvas id="ctrl-right" width="160" height="200"></canvas></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 4: ARTIFACT INSPECT
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="scr-artifact">
+  <span class="pill inspect-pill">MODE INSPEKSI</span>
+  <div class="artifact-col">
+    <div class="artifact-stage" id="artifact-stage">
+      <div class="orbit-ring"></div>
+      <div class="orbit-ring r2"></div>
+      <div id="pot3d">
+        <div class="face"></div>
+        <div class="face back"></div>
+      </div>
+      <div class="shadow-disc"></div>
+    </div>
+    <div class="grab-hint">Genggam &amp; putar untuk melihat 360°</div>
+  </div>
+
+  <div class="artifact-info">
+    <div style="font-size:10px;font-family:var(--font-mono);color:var(--terra-500);letter-spacing:.12em;margin-bottom:6px;">KOLEKSI TROWULAN · 1 / 1</div>
+    <h3 style="font-size:22px;">Gerabah Istana</h3>
+    <hr/>
+    <div class="artifact-tags">
+      <span class="tag terra" style="color:var(--cream-100);background:var(--terra-500);">KERAMIK</span>
+      <span class="tag gold">ABAD XIV M</span>
+    </div>
+    <p style="font-size:13px;line-height:1.65;margin-bottom:10px;">
+      Gerabah berbahan tanah liat merah ditemukan di area bekas dapur istana Trowulan. Pola geometris menunjukkan
+      pengaruh estetika Hindu-Buddha yang kuat pada seni kerajinan Majapahit.
+    </p>
+    <p style="font-size:13px;line-height:1.65;margin-bottom:14px;">
+      Ukiran spiral pada leher gerabah bermakna kesuburan dan kemakmuran — simbol sakral keraton.
+    </p>
+    <div class="spec-row"><span style="color:var(--andesit-500);">Dimensi</span><span>24 cm × 18 cm</span></div>
+    <div class="spec-row"><span style="color:var(--andesit-500);">Bahan</span><span>Tanah liat merah</span></div>
+    <div class="spec-row"><span style="color:var(--andesit-500);">Kondisi</span><span>Utuh, sedikit retak</span></div>
+    <div class="spec-row"><span style="color:var(--andesit-500);">Koleksi</span><span>Museum Majapahit</span></div>
+    <div class="artifact-nav">
+      <button class="btn-ghost" style="flex:1;" onclick="backToExplore()">← Kembali Jelajah</button>
+      <button class="btn-primary" style="flex:1;" id="btn-to-quiz" onclick="goToQuiz()">Lanjut ke Kuis →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 5: QUIZ
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="scr-quiz">
+  <div class="stars"></div>
+  <span class="pill quiz-pill">KUIS MISI · TROWULAN</span>
+  <div class="quiz-counter">Pertanyaan <span id="quiz-num">1</span> dari 3</div>
+  <div class="quiz-card">
+    <h3 class="quiz-q" id="quiz-q"></h3>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <div class="quiz-options" id="quiz-options"></div>
+    <div class="quiz-foot">
+      <button class="btn-primary" id="quiz-next-btn" style="display:none;" onclick="nextQuiz()">Lanjut →</button>
+    </div>
+  </div>
+  <!-- Progress bar -->
+  <div style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%);width:180px;text-align:center;">
+    <div style="height:4px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;margin-bottom:8px;">
+      <div id="quiz-progress-fill" style="height:100%;background:var(--gold-500);border-radius:999px;width:0%;transition:width .4s;"></div>
+    </div>
+    <span style="font-family:var(--font-mono);font-size:10px;opacity:.5;color:var(--cream-100);">PROGRES KUIS</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCREEN 6: BADGE / SELESAI
+══════════════════════════════════════════════════════ -->
+<div class="screen" id="scr-badge">
+  <div class="badge-medal">
+    <div class="badge-ring"></div>
+    <span class="eyebrow" style="color:var(--gold-300);font-size:9px;">PENJELAJAH NUSANTARA</span>
+    <div style="font-size:38px;color:var(--gold-500);margin-top:6px;">⌂</div>
+    <div class="badge-stars">★★★★★</div>
+  </div>
+
+  <div style="text-align:center;">
+    <h2 style="font-size:26px;">Misi Tuntas!</h2>
+    <p style="font-size:13px;opacity:.75;margin-top:6px;max-width:320px;">
+      Kamu telah menjelajahi Trowulan dan menemukan semua artefak kunci Majapahit.
+    </p>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="num">3/3</div><div class="lbl">ARTEFAK<br>DITEMUKAN</div></div>
+    <div class="stat-card"><div class="num" id="stat-quiz">0/3</div><div class="lbl">KUIS<br>BENAR</div></div>
+    <div class="stat-card"><div class="num" id="stat-time">—</div><div class="lbl">WAKTU<br>SELESAI</div></div>
+  </div>
+
+  <div class="badge-actions">
+    <button class="btn-ghost" style="color:var(--cream-100);border-color:rgba(232,196,104,.4);" onclick="restartModule()">↺ Ulangi Modul</button>
+    <button class="btn-primary" onclick="goTo('map')">Modul Lain →</button>
+  </div>
+
+  <!-- Next modules teaser -->
+  <div>
+    <div style="font-family:var(--font-mono);font-size:11px;opacity:.5;text-align:center;margin-bottom:10px;letter-spacing:.06em;">MODUL BERIKUTNYA</div>
+    <div class="badge-next-modules">
+      <div class="next-mod"><div class="mod-icon">🕌</div><div class="mod-name">BOROBUDUR</div><div class="mod-lock">🔒 Segera Hadir</div></div>
+      <div class="next-mod"><div class="mod-icon">💀</div><div class="mod-name">SANGIRAN</div><div class="mod-lock">🔒 Segera Hadir</div></div>
+      <div class="next-mod"><div class="mod-icon">⚓</div><div class="mod-name">BANTEN LAMA</div><div class="mod-lock">🔒 Segera Hadir</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function goTo(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('scr-' + name);
+  if (target) target.classList.add('active');
+  if (name === 'explore') initVRIfNeeded();
+}
+
+function exitExplore() {
+  if (vrActive) document.exitPointerLock();
+  wristMenu.classList.remove('show');
+  goTo('map');
+}
+
+function restartModule() {
+  quizIdx = 0; quizCorrect = 0; gerabahFound = false; gerabahMarkedDone = false; quizDone = false;
+  npcShown = false; timerSeconds = 768;
+  document.getElementById('chk-gerabah').textContent = '○';
+  document.getElementById('chk-gerabah').classList.remove('done');
+  document.getElementById('wm-gerabah').className = 'wm-item pending';
+  document.getElementById('wm-gerabah').innerHTML = '<span>□ Gerabah Istana</span><span style="font-family:var(--font-mono);font-size:11px;">Belum ditemukan</span>';
+  document.getElementById('wm-progress-label').textContent = '2 / 3 Artefak';
+  document.getElementById('wm-progress-fill').style.width = '66%';
+  renderQuiz();
+  goTo('map');
+}
+
+/* ═══════════════════════════════════════
+   ONBOARDING
+═══════════════════════════════════════ */
+document.getElementById('heightSlider').addEventListener('input', e => {
+  document.getElementById('heightVal').textContent = e.target.value;
+});
+document.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => o.classList.toggle('on')));
+
+/* ═══════════════════════════════════════
+   MAP
+═══════════════════════════════════════ */
+function selectModule(name) { /* future: show different module cards */ }
+function startExplore() { goTo('explore'); }
+
+/* ═══════════════════════════════════════
+   WRIST MENU
+═══════════════════════════════════════ */
+const wristMenu = document.getElementById('wrist-menu');
+
+let wristMenuOpening = false; // flag: pointer lock is being released BECAUSE of Tab/wrist menu, not ESC pause
+
+function openWristMenu() {
+  if (wristMenu.classList.contains('show')) return;
+  wristMenu.classList.add('show');
+  // Release pointer lock so cursor is visible and clickable
+  if (document.pointerLockElement) {
+    wristMenuOpening = true;
+    document.exitPointerLock();
+  }
+}
+
+function closeWristMenu() {
+  if (!wristMenu.classList.contains('show')) return;
+  wristMenu.classList.remove('show');
+  // Re-lock pointer to resume exploration (only if still on explore screen)
+  const exploreActive = document.getElementById('scr-explore').classList.contains('active');
+  if (exploreActive) {
+    setTimeout(() => document.getElementById('scr-explore').requestPointerLock(), 80);
+  }
+}
+
+function toggleWristMenu() {
+  wristMenu.classList.contains('show') ? closeWristMenu() : openWristMenu();
+}
+
+document.getElementById('wrist-trigger').addEventListener('click', toggleWristMenu);
+
+document.addEventListener('keydown', e => {
+  if (e.code === 'Tab' && document.getElementById('scr-explore').classList.contains('active')) {
+    e.preventDefault();
+    // Tab hanya membuka wrist menu — tidak pause, tidak exit pointer lock sendiri
+    // ESC tetap handle pause/keluar pointer lock secara native browser
+    openWristMenu();
+  }
+});
+
+// Close menu when clicking outside of it (on the 3D scene)
+document.addEventListener('click', e => {
+  if (wristMenu.classList.contains('show') && !wristMenu.contains(e.target) &&
+      e.target !== document.getElementById('wrist-trigger')) {
+    closeWristMenu();
+  }
+});
+function switchWristTab(id, btn) {
+  document.querySelectorAll('.wtab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.wrist-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('wm-' + id).classList.add('active');
+  if (id === 'peta') drawBigMap();
+}
+function toggleSetting(el) { el.classList.toggle('off'); }
+
+/* ═══════════════════════════════════════
+   ARTIFACT INSPECT
+═══════════════════════════════════════ */
+let dragging = false, lastX = 0, rotY = 10;
+const pot3d = document.getElementById('pot3d');
+document.getElementById('artifact-stage').addEventListener('mousedown', e => { dragging = true; lastX = e.clientX; });
+window.addEventListener('mouseup', () => dragging = false);
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  rotY += (e.clientX - lastX) * 0.65;
+  lastX = e.clientX;
+  pot3d.style.transform = `translate(-50%,-50%) rotateY(${rotY}deg)`;
+});
+(function spinPot() {
+  if (!dragging) { rotY += 0.14; pot3d.style.transform = `translate(-50%,-50%) rotateY(${rotY}deg)`; }
+  requestAnimationFrame(spinPot);
+})();
+
+let gerabahMarkedDone = false;
+let quizDone = false;
+
+/* Mark artifact found (update mission HUD), called once */
+function markGerabahFound() {
+  if (gerabahMarkedDone) return;
+  gerabahMarkedDone = true;
+  document.getElementById('chk-gerabah').textContent = '✓';
+  document.getElementById('chk-gerabah').classList.add('done');
+  document.getElementById('wm-gerabah').className = 'wm-item found';
+  document.getElementById('wm-gerabah').innerHTML =
+    '<span>✓ Gerabah Istana</span><span style="font-family:var(--font-mono);font-size:11px;">Ditemukan</span>';
+  document.getElementById('wm-progress-label').textContent = '3 / 3 Artefak';
+  document.getElementById('wm-progress-fill').style.width = '100%';
+}
+
+/* ← Kembali Jelajah: close inspect, re-enter explore without quiz */
+function backToExplore() {
+  markGerabahFound();
+  goTo('explore');
+  /* Re-lock pointer after short delay so user can keep exploring */
+  setTimeout(() => {
+    document.getElementById('scr-explore').requestPointerLock();
+  }, 300);
+}
+
+/* Lanjut ke Kuis → */
+function goToQuiz() {
+  markGerabahFound();
+  if (quizDone) {
+    /* Quiz already completed — just go back to explore */
+    goTo('badge');
+  } else {
+    goTo('quiz');
+  }
+}
+
+/* ═══════════════════════════════════════
+   QUIZ
+═══════════════════════════════════════ */
+const quizData = [
+  { q:'Mengapa gerabah Majapahit memiliki ukiran spiral pada lehernya?', options:[
+    {l:'Hiasan semata, sesuai tren dekorasi masa itu',c:false},
+    {l:'Simbol kesuburan dan kemakmuran keraton',c:true},
+    {l:'Penanda identitas pengrajin pembuat gerabah',c:false},
+    {l:'Teknik penguat struktural agar tidak retak',c:false}
+  ]},
+  { q:'Prasasti batu di Trowulan umumnya ditulis menggunakan aksara apa?', options:[
+    {l:'Aksara Jawa Kuno / Kawi',c:true},
+    {l:'Aksara Latin',c:false},
+    {l:'Aksara Arab Pegon',c:false},
+    {l:'Aksara Bali modern',c:false}
+  ]},
+  { q:'Arca penjaga (Dwarapala) biasanya ditempatkan di mana?', options:[
+    {l:'Di tengah alun-alun istana',c:false},
+    {l:'Di pintu gerbang / candi sebagai penjaga',c:true},
+    {l:'Di dalam dapur istana',c:false},
+    {l:'Tersebar acak di area persawahan',c:false}
+  ]}
+];
+let quizIdx = 0, quizCorrect = 0;
+const LETTERS = ['A','B','C','D'];
+
+function renderQuiz() {
+  const data = quizData[quizIdx];
+  document.getElementById('quiz-num').textContent = quizIdx + 1;
+  document.getElementById('quiz-q').textContent = data.q;
+  document.getElementById('quiz-feedback').style.display = 'none';
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+  document.getElementById('quiz-next-btn').style.display = 'none';
+  document.getElementById('quiz-progress-fill').style.width = (quizIdx / quizData.length * 100) + '%';
+  const wrap = document.getElementById('quiz-options');
+  wrap.innerHTML = '';
+  data.options.forEach((opt, i) => {
+    const div = document.createElement('div');
+    div.className = 'opt-card';
+    div.innerHTML = `<span class="opt-letter">${LETTERS[i]}</span><span>${opt.l}</span>`;
+    div.addEventListener('click', () => answerQuiz(div, opt.c, data));
+    wrap.appendChild(div);
+  });
+}
+
+function answerQuiz(div, correct, data) {
+  document.querySelectorAll('.opt-card').forEach(c => c.style.pointerEvents = 'none');
+  const fb = document.getElementById('quiz-feedback');
+  fb.style.display = 'block';
+  if (correct) {
+    div.classList.add('correct');
+    fb.textContent = '✓ Benar! ' + data.options.find(o=>o.c).l;
+    fb.classList.add('correct');
+    quizCorrect++;
+  } else {
+    div.classList.add('incorrect');
+    fb.textContent = '✗ Kurang tepat. Jawaban benar: ' + data.options.find(o=>o.c).l;
+    fb.classList.add('wrong');
+    document.querySelectorAll('.opt-card').forEach((c,i) => { if (data.options[i].c) c.classList.add('correct'); });
+  }
+  document.getElementById('quiz-next-btn').style.display = 'inline-block';
+}
+
+function nextQuiz() {
+  quizIdx++;
+  if (quizIdx >= quizData.length) {
+    quizDone = true;
+    document.getElementById('quiz-progress-fill').style.width = '100%';
+    document.getElementById('stat-quiz').textContent = quizCorrect + '/3';
+    const elapsed = 768 - timerSeconds;
+    const em = Math.floor(elapsed/60), es = elapsed%60;
+    document.getElementById('stat-time').textContent = em + ':' + String(es).padStart(2,'0');
+    // Spawn diamonds
+    const badge = document.getElementById('scr-badge');
+    badge.querySelectorAll('.diamond').forEach(d => d.remove());
+    for (let i = 0; i < 14; i++) {
+      const d = document.createElement('div'); d.className = 'diamond';
+      d.style.left = (4+Math.random()*92)+'%';
+      d.style.top  = (4+Math.random()*78)+'%';
+      d.style.background = ['#C99A3D','#4F7A6B','#A85D3B'][i%3];
+      d.style.opacity = 0.3+Math.random()*0.55;
+      badge.appendChild(d);
+    }
+    goTo('badge');
+    return;
+  }
+  renderQuiz();
+}
+
+renderQuiz();
+
+/* ═══════════════════════════════════════
+   THREE.JS — 3D SCENE
+═══════════════════════════════════════ */
+let vrInitialized = false;
+let vrActive = false;
+let yaw = 0, pitch = 0;
+let camSens = 0.0017;
+const keys = {};
+let timerSeconds = 768;
+let vrTimer = null;
+let npcShown = false;
+let gerabahFound = false;
+let nearGerabah = false;
+
+function initVRIfNeeded() {
+  if (vrInitialized) return;
+  vrInitialized = true;
+  buildVRScene();
+}
+
+function buildVRScene() {
+  const canvas   = document.getElementById('vr-canvas');
+  const overlay  = document.getElementById('vr-overlay');
+  const mmCanvas = document.getElementById('minimap-canvas');
+  const mmCtx    = mmCanvas.getContext('2d');
+
+  /* ─── Renderer ─── */
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.toneMapping          = THREE.ReinhardToneMapping;
+  renderer.toneMappingExposure  = 1.1;
+
+  function resize() {
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  }
+
+  /* ─── Scene ─── */
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x12080a);
+  scene.fog = new THREE.FogExp2(0x1a0d08, 0.016);
+
+  /* ─── Camera ─── */
+  const camera = new THREE.PerspectiveCamera(72, 1, 0.05, 150);
+  camera.position.set(0, 1.7, 10);
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* ─── Lighting ─── */
+  // Ambient — warm dusk
+  scene.add(new THREE.AmbientLight(0x2a1508, 1.8));
+
+  // Sun key — low afternoon orange
+  const sun = new THREE.DirectionalLight(0xffa060, 2.4);
+  sun.position.set(25, 18, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { near:.5, far:100, left:-45, right:45, top:45, bottom:-45 });
+  scene.add(sun);
+
+  // Sky fill — cool blue
+  const sky = new THREE.DirectionalLight(0x304070, 0.6);
+  sky.position.set(-12, 14, -8);
+  scene.add(sky);
+
+  // Torch point lights
+  const torchPositions = [
+    [ 5.5,-5], [-5.5,-5], [ 5.5, 5], [-5.5, 5],
+    [12, -10], [-12,-10], [12,  10], [-12, 10],
+    [ 0, -9.5],           [ 3, -9.5]
+  ];
+  const torches = torchPositions.map(([x,z]) => {
+    const pl = new THREE.PointLight(0xff8833, 2.8, 11);
+    pl.position.set(x, 2.8, z);
+    scene.add(pl);
+    return pl;
+  });
+
+  // Gerabah glow
+  const gerabahGlow = new THREE.PointLight(0xffcc55, 2.2, 5);
+  gerabahGlow.position.set(-4, 1.8, -3.5);
+  scene.add(gerabahGlow);
+
+  /* ─── Sky dome (gradient shader) ─── */
+  const skyDome = new THREE.Mesh(
+    new THREE.SphereGeometry(100, 16, 8),
+    new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      uniforms:{
+        top:   {value: new THREE.Color(0x05030e)},
+        mid:   {value: new THREE.Color(0x3a1206)},
+        bot:   {value: new THREE.Color(0x6b2008)},
+      },
+      vertexShader:`varying float h;void main(){h=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+      fragmentShader:`uniform vec3 top,mid,bot;varying float h;void main(){vec3 c=h>0.?mix(mid,top,h):mix(bot,mid,h+1.);gl_FragColor=vec4(c,1.);}`
+    })
+  );
+  scene.add(skyDome);
+
+  /* ─── Floor ─── */
+  const floorMat = new THREE.MeshStandardMaterial({ color:0x3d2a15, roughness:0.97, metalness:0.0 });
+  const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(100,100), floorMat);
+  floorMesh.rotation.x = -Math.PI/2;
+  floorMesh.receiveShadow = true;
+  scene.add(floorMesh);
+
+  // Stone path
+  const pathMat = new THREE.MeshStandardMaterial({ color:0x6a5240, roughness:0.9 });
+  const pathMesh = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 50), pathMat);
+  pathMesh.rotation.x = -Math.PI/2;
+  pathMesh.position.set(0, 0.01, 0);
+  pathMesh.receiveShadow = true;
+  scene.add(pathMesh);
+
+  // Side paths
+  [-6,6].forEach(x => {
+    const sp = new THREE.Mesh(new THREE.PlaneGeometry(2.5,50), pathMat.clone());
+    sp.rotation.x = -Math.PI/2; sp.position.set(x,0.01,0); sp.receiveShadow=true; scene.add(sp);
+  });
+
+  /* ─── Material helpers ─── */
+  const mats = {
+    stone:    new THREE.MeshStandardMaterial({color:0x7a6248, roughness:0.88, metalness:0.12}),
+    stone2:   new THREE.MeshStandardMaterial({color:0x6a5238, roughness:0.85, metalness:0.15}),
+    gold:     new THREE.MeshStandardMaterial({color:0xc99a3d, roughness:0.45, metalness:0.75}),
+    darkRed:  new THREE.MeshStandardMaterial({color:0x5c1e1e, roughness:0.82}),
+    terracotta:new THREE.MeshStandardMaterial({color:0xa85d3b, roughness:0.72, metalness:0.08}),
+    wood:     new THREE.MeshStandardMaterial({color:0x4a3018, roughness:0.92}),
+    jade:     new THREE.MeshStandardMaterial({color:0x2d5a27, roughness:0.88}),
+    skin:     new THREE.MeshStandardMaterial({color:0xd4a574, roughness:0.8}),
+    cloth:    new THREE.MeshStandardMaterial({color:0x9c7522, roughness:0.75}),
+    ruin:     new THREE.MeshStandardMaterial({color:0x4a3a28, roughness:0.95}),
+  };
+
+  function mesh(geo, mat, x, y, z, rx, ry) {
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(x||0,y||0,z||0);
+    if(rx) m.rotation.x=rx; if(ry) m.rotation.y=ry;
+    m.castShadow=true; m.receiveShadow=true;
+    scene.add(m); return m;
+  }
+  function box(w,h,d,mat,x,y,z,ry){return mesh(new THREE.BoxGeometry(w,h,d),mat,x,y,z,0,ry);}
+  function cyl(rt,rb,h,seg,mat,x,y,z){return mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat,x,y,z);}
+
+  /* ─── Invisible boundary walls ─── */
+  const invis = new THREE.MeshStandardMaterial({visible:false});
+  [[ 0,2.5,-22,40,5,0.3],[ 0,2.5,22,40,5,0.3],[-22,2.5,0,0.3,5,44],[22,2.5,0,0.3,5,44]]
+    .forEach(([x,y,z,w,h,d])=>box(w,h,d,invis,x,y,z));
+
+  /* ─── CANDI TROWULAN (temple complex) ─── */
+  // Foundation base
+  box(18,0.6,16, mats.stone, 0,0.3,-16);
+  // Level 1
+  box(14,2.2,12, mats.stone, 0,1.7,-16);
+  // Level 2
+  box(10,2.5, 9, mats.stone2,0,4.05,-16.3);
+  // Level 3
+  box( 7,2.5, 6, mats.stone, 0,6.55,-16.6);
+  // Level 4
+  box( 4,3.0, 4, mats.stone2,0,9.3, -16.9);
+  // Spire
+  mesh(new THREE.ConeGeometry(1.2,3.5,8), mats.gold, 0,12.8,-17);
+  // Top ornament
+  mesh(new THREE.SphereGeometry(0.35,12,8),
+    new THREE.MeshStandardMaterial({color:0xc99a3d,emissive:0x664400,emissiveIntensity:.5,metalness:.9,roughness:.2}),
+    0,14.6,-17);
+
+  // Side shrines
+  [[-7,0,-13],[7,0,-13]].forEach(([x,,z])=>{
+    box(4,3,3.5,mats.stone,x,1.5,z);
+    mesh(new THREE.ConeGeometry(.8,1.6,8),mats.stone2,x,3.4,z);
+    // shrine lanterns
+    const l=new THREE.Mesh(
+      new THREE.SphereGeometry(.15,8,6),
+      new THREE.MeshStandardMaterial({color:0xffcc44,emissive:0xff8800,emissiveIntensity:2})
+    );
+    l.position.set(x,3.0,z-1.2); scene.add(l);
+  });
+
+  // Temple stairs
+  [[6,0.25,1.6,0,0.12,-10.2],[5,0.25,1.3,0,0.62,-11.4],[4,0.25,1.1,0,1.12,-12.5],[3,0.25,0.9,0,1.62,-13.5]]
+    .forEach(([w,,d,x,y,z])=>box(w,0.5,d,mats.stone,x,y,z));
+
+  // Entrance pillars with torches
+  [-3.8,3.8].forEach(px=>{
+    box(.55,4.5,.55,mats.stone2,px,2.25,-10);
+    const f=new THREE.Mesh(
+      new THREE.SphereGeometry(.22,8,6),
+      new THREE.MeshStandardMaterial({color:0xff7700,emissive:0xff5500,emissiveIntensity:3})
+    );
+    f.position.set(px,4.85,-10); scene.add(f);
+  });
+
+  // Decorative wall reliefs (horizontal bands)
+  [-1.5, 0, 1.5].forEach(oy=>{
+    box(14,.12,0.15,mats.gold, 0,1.7+oy,-9.9);
+  });
+
+  /* ─── WARINGIN (banyan trees) ─── */
+  function waringin(x,z,s=1){
+    cyl(.22*s,.32*s,3.2*s,9,mats.wood,x,1.6*s,z);
+    [[0,0,0],[.6,1.3,.4],[-.5,1.1,-.3],[.3,2.1,-.5],[-.4,2.3,.3]].forEach(([ox,oh,oz])=>{
+      mesh(new THREE.SphereGeometry((1.5-oh*.3)*s,10,7),mats.jade,x+ox*s,(3.2+oh)*s,z+oz*s);
+    });
+    // Aerial roots
+    for(let i=0;i<4;i++){
+      const rx=(Math.random()-.5)*2.5, rz=(Math.random()-.5)*2.5;
+      cyl(.045,.07,2.8,5,mats.wood,x+rx,1.4,z+rz);
+    }
+  }
+  waringin(-11,-4,1.1); waringin(12,-3,1.0);
+  waringin(-9, 6,0.9);  waringin(10, 8,1.0);
+  waringin(-16,-9,1.2); waringin(16,-8,1.1);
+  waringin( 0, 16,1.0); waringin(-5, 14,.85);
+
+  /* ─── RUINS (scattered stones) ─── */
+  [[-8,-2],[-9,2],[-7,-5],[8,-2],[9,1],[10,-6],[-6,5],[-5,7],[7,5],[8,8],[5,-8],[-10,-7],[14,2],[-14,5]]
+    .forEach(([x,z])=>{
+      const h=.3+Math.random()*1.3, w=.6+Math.random()*.7, d=.7+Math.random()*.6;
+      box(w,h,d,mats.ruin,x,h/2,z,0,Math.random()*Math.PI);
+    });
+
+  // Ruin walls
+  box(3,.8,.4,mats.ruin,-10,.4,-2.5); box(1.5,.5,.4,mats.ruin,-10,.65,-2.5);
+  box(.4,1.2,4,mats.ruin, 10,0.6,-5);
+
+  /* ─── GERABAH (artifact) ─── */
+  const gerabahGroup = new THREE.Group();
+  gerabahGroup.position.set(-4, 0, -3.5);
+
+  // Pedestal
+  const gerabahPedestal = new THREE.Mesh(new THREE.CylinderGeometry(.55,.65,.22,14), mats.stone);
+  gerabahPedestal.position.set(0,.11,0);
+  gerabahPedestal.castShadow = true;
+  gerabahPedestal.receiveShadow = true;
+  gerabahGroup.add(gerabahPedestal);
+
+  // Pot body
+  const potGeo = new THREE.SphereGeometry(.33,18,14);
+  const potMat = new THREE.MeshStandardMaterial({
+    color:0xb0633d, roughness:0.65, metalness:.08,
+    emissive:0x3a1205, emissiveIntensity:.25
+  });
+  const potBody = new THREE.Mesh(potGeo, potMat);
+  potBody.scale.set(1,1.25,1); potBody.position.set(0,.63,0);
+  potBody.castShadow=true; gerabahGroup.add(potBody);
+
+  // Neck
+  const gerabahNeck = new THREE.Mesh(new THREE.CylinderGeometry(.11,.21,.25,12), potMat.clone());
+  gerabahNeck.position.set(0,1.05,0);
+  gerabahNeck.castShadow = true;
+  gerabahGroup.add(gerabahNeck);
+
+  // Gold rim
+  const rimMesh = new THREE.Mesh(
+    new THREE.TorusGeometry(.13,.032,8,22),
+    mats.gold.clone()
+  );
+  rimMesh.rotation.x=Math.PI/2; rimMesh.position.set(0,1.17,0);
+  gerabahGroup.add(rimMesh);
+
+  // Spiral decoration lines on body
+  for(let i=0;i<4;i++){
+    const ang = (i/4)*Math.PI*2;
+    const dl = new THREE.Mesh(
+      new THREE.TorusGeometry(.22,.01,5,16,Math.PI*.6),
+      new THREE.MeshStandardMaterial({color:0x7a3c18})
+    );
+    dl.position.set(Math.sin(ang)*.25,.6,Math.cos(ang)*.25);
+    dl.rotation.y = ang; dl.rotation.x = .3;
+    gerabahGroup.add(dl);
+  }
+
+  scene.add(gerabahGroup);
+
+  /* ─── NPC: ABDI ISTANA ─── */
+  const npcGroup = new THREE.Group();
+  npcGroup.position.set(3.5, 0, -1.5);
+  npcGroup.rotation.y = -0.5;
+
+  // Legs
+  [-0.12,0.12].forEach(dx=>{
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.08,.09,.7,8),mats.cloth);
+    leg.position.set(dx,.35,0); npcGroup.add(leg);
+  });
+  // Body/baju
+  const bodyMesh=new THREE.Mesh(new THREE.BoxGeometry(.44,.72,.3),mats.cloth);
+  bodyMesh.position.set(0,1.1,0); npcGroup.add(bodyMesh);
+  // Selendang (sash)
+  const sashMat=new THREE.MeshStandardMaterial({color:0xc99a3d,roughness:.6,metalness:.3});
+  const sash=new THREE.Mesh(new THREE.BoxGeometry(.46,.08,.32),sashMat);
+  sash.position.set(0,.78,0); npcGroup.add(sash);
+  // Head
+  const headMesh=new THREE.Mesh(new THREE.SphereGeometry(.2,13,10),mats.skin);
+  headMesh.position.set(0,1.72,0); npcGroup.add(headMesh);
+  // Udeng
+  const udengMat=new THREE.MeshStandardMaterial({color:0x8a4a2d,roughness:.7});
+  const udeng=new THREE.Mesh(new THREE.CylinderGeometry(.17,.21,.19,10),udengMat);
+  udeng.position.set(0,1.9,0); npcGroup.add(udeng);
+  // Udeng knot
+  const knot=new THREE.Mesh(new THREE.BoxGeometry(.08,.12,.14),udengMat);
+  knot.position.set(0,1.99,.14); npcGroup.add(knot);
+  // Arms
+  [-0.27,0.27].forEach((dx,i)=>{
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.065,.075,.58,7),mats.cloth);
+    arm.position.set(dx,1.1,0); arm.rotation.z=(i===0?1:-1)*.28; npcGroup.add(arm);
+    // Hands
+    const hand=new THREE.Mesh(new THREE.SphereGeometry(.075,8,6),mats.skin);
+    hand.position.set(dx*(1+.28*.8*.9),1.1-.28*.7,0); npcGroup.add(hand);
+  });
+  // NPC indicator light
+  const npcLight=new THREE.PointLight(0xffaa44,1.2,4);
+  npcLight.position.set(0,2.5,0); npcGroup.add(npcLight);
+
+  npcGroup.traverse(c=>{if(c.isMesh){c.castShadow=true;}});
+  scene.add(npcGroup);
+
+  /* ─── PRASASTI (stone slab) ─── */
+  box(0.28,1.7,1.1,mats.stone2, 6,0.85,-8,-0.4);
+  // Carved text grooves
+  [-0.4,-0.1,0.2,0.5].forEach(oy=>{
+    const groove=new THREE.Mesh(new THREE.PlaneGeometry(.9,.03),
+      new THREE.MeshStandardMaterial({color:0x1a0e08}));
+    groove.position.set(6.15,0.85+oy,-8);
+    groove.rotation.y=Math.PI/2-.4;
+    scene.add(groove);
+  });
+
+  /* ─── DWARAPALA / ARCA PENJAGA ─── */
+  function addArca(x,z){
+    const g=new THREE.Group();
+    const arcaMat=new THREE.MeshStandardMaterial({color:0x403520,roughness:.87,metalness:.2});
+    box(0.7,0.35,0.7,arcaMat, 0,.175,0); // base
+    box(0.44,.95,0.36,arcaMat, 0,.9,0); // body
+    // Belly bump
+    mesh(new THREE.SphereGeometry(.28,10,7),arcaMat,0,.88,.04);
+    mesh(new THREE.SphereGeometry(.21,12,9),arcaMat,0,1.45,0); // head
+    mesh(new THREE.ConeGeometry(.2,.46,8),arcaMat,0,1.72,0); // crown
+    // Club weapon
+    const clubMat=arcaMat.clone();
+    cyl(.035,.04,1.1,6,clubMat,.22,.8,.05); // handle
+    mesh(new THREE.SphereGeometry(.12,8,6),clubMat,.22,1.38,.05); // head
+    // Eyes
+    const eyeM=new THREE.MeshStandardMaterial({color:0xff3300,emissive:0xff2200,emissiveIntensity:1.5});
+    [-.065,.065].forEach(ex=>{
+      mesh(new THREE.SphereGeometry(.03,6,5),eyeM,ex,1.48,.18);
+    });
+    g.position.set(x,0,z); g.castShadow=true;
+    g.traverse(c=>{if(c.isMesh)c.castShadow=true;});
+    scene.add(g);
+  }
+  addArca(-3,-9.2); addArca(3,-9.2);
+
+  /* ─── BAKAR / INCENSE burners ─── */
+  [[-2,0,-7],[2,0,-7]].forEach(([x,,z])=>{
+    cyl(.18,.22,.5,10,mats.stone2,x,.25,z);
+    cyl(.12,.16,.1,10,mats.gold,x,.5,z);
+    // Smoke particle — simple glowing sphere
+    const smoke=new THREE.Mesh(
+      new THREE.SphereGeometry(.06,6,5),
+      new THREE.MeshStandardMaterial({color:0xcccccc,transparent:true,opacity:.35})
+    );
+    smoke.position.set(x,.8,z); scene.add(smoke);
+  });
+
+  /* ─── FIREFLIES (ambient particles) ─── */
+  const PC = 500;
+  const pBuf = new Float32Array(PC*3);
+  for(let i=0;i<PC;i++){
+    pBuf[i*3]  =(Math.random()-.5)*55;
+    pBuf[i*3+1]=.2+Math.random()*5;
+    pBuf[i*3+2]=(Math.random()-.5)*55;
+  }
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pBuf,3));
+  const particles = new THREE.Points(pGeo,
+    new THREE.PointsMaterial({color:0xffdd99,size:.07,transparent:true,opacity:.55,sizeAttenuation:true})
+  );
+  scene.add(particles);
+
+  /* ═════════════════════════════════════
+     INPUT / POINTER LOCK
+  ═════════════════════════════════════ */
+  document.addEventListener('keydown', e=>{ keys[e.code]=true; });
+  document.addEventListener('keyup',   e=>{ keys[e.code]=false; });
+
+  document.addEventListener('mousemove', e=>{
+    if(!vrActive) return;
+    yaw   -= e.movementX * camSens;
+    pitch -= e.movementY * camSens;
+    pitch  = Math.max(-Math.PI*.42, Math.min(Math.PI*.42, pitch));
+  });
+
+  overlay.addEventListener('click', ()=>{ document.getElementById('scr-explore').requestPointerLock(); });
+
+  document.addEventListener('pointerlockchange', ()=>{
+    vrActive = document.pointerLockElement === document.getElementById('scr-explore');
+
+    // If the pointer unlocked because Tab opened the wrist menu, don't run
+    // the "pause" UI (overlay + hiding HUD). The wrist menu's own panel is
+    // the only thing that should show — ESC stays the only true pause.
+    if (!vrActive && wristMenuOpening) {
+      wristMenuOpening = false;
+      return;
+    }
+
+    overlay.style.display = vrActive ? 'none' : 'flex';
+    ['crosshair','mission-hud','hud-hint','hud-pos','wrist-trigger','minimap','compass-hud','vr-controllers']
+      .forEach(id=>{
+        const el=document.getElementById(id);
+        if(!el) return;
+        el.style.display = vrActive ? (id==='timer-hud'?'flex':id==='hud-pos'?'flex':'block') : 'none';
+      });
+    document.getElementById('timer-hud').style.display  = vrActive ? 'flex' : 'none';
+    document.getElementById('hud-pos').style.display    = vrActive ? 'flex' : 'none';
+    document.getElementById('wrist-trigger').style.display = vrActive ? 'flex' : 'none';
+
+    if (vrActive && !npcShown) {
+      npcShown = true;
+      setTimeout(()=>{
+        const d=document.getElementById('npc-dialogue');
+        d.style.display='block'; d.classList.add('show');
+        setTimeout(()=>d.classList.remove('show'), 6000);
+      }, 1600);
+    }
+    if (vrActive && !vrTimer) startVRTimer();
+  });
+
+  /* Key [E] interaction — works for first pickup AND re-inspect */
+  document.addEventListener('keydown', e=>{
+    if (e.code==='KeyE' && vrActive && nearGerabah) {
+      triggerArtifactFound();
+    }
+  });
+
+  /* ═════════════════════════════════════
+     MINIMAP DRAW
+  ═════════════════════════════════════ */
+  function drawMinimap(ctx, W, H, scale) {
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle='rgba(15,24,48,.0)'; ctx.fillRect(0,0,W,H);
+
+    const cx=W/2, cy=H/2;
+    const toMM=(wx,wz)=>({x:cx+wx*scale, y:cy+wz*scale});
+
+    // Path
+    ctx.fillStyle='rgba(106,82,64,.5)';
+    ctx.fillRect(cx-2.25*scale, 0, 4.5*scale, H);
+
+    // Temple
+    ctx.fillStyle='rgba(122,98,72,.8)';
+    const tp=toMM(0,-16); ctx.fillRect(tp.x-9*scale,tp.y-8*scale,18*scale,16*scale);
+
+    // Trees (circles)
+    ctx.fillStyle='rgba(45,90,39,.7)';
+    [[-11,-4],[12,-3],[-9,6],[10,8],[-16,-9],[16,-8],[0,16],[-5,14]].forEach(([x,z])=>{
+      const p=toMM(x,z); ctx.beginPath(); ctx.arc(p.x,p.y,3*scale,0,Math.PI*2); ctx.fill();
+    });
+
+    // Gerabah star
+    if(!gerabahFound){
+      const gp=toMM(-4,-3.5);
+      ctx.fillStyle='rgba(201,154,61,1)';
+      ctx.font=`${8*scale}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('⭐',gp.x,gp.y);
+    }
+
+    // Player dot
+    const pp=toMM(camera.position.x, camera.position.z);
+    // Direction arrow
+    ctx.save();
+    ctx.translate(pp.x,pp.y);
+    ctx.rotate(yaw);
+    ctx.fillStyle='#ff4444';
+    ctx.beginPath(); ctx.moveTo(0,-5); ctx.lineTo(3,3); ctx.lineTo(0,1); ctx.lineTo(-3,3); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBigMap() {
+    const bc = document.getElementById('minimap-big-canvas');
+    if(!bc) return;
+    const bctx = bc.getContext('2d');
+    bc.width=326; bc.height=150;
+    bctx.fillStyle='#0F1830'; bctx.fillRect(0,0,326,150);
+    drawMinimap(bctx,326,150,3.2);
+  }
+
+  /* ═════════════════════════════════════
+     GERABAH PROXIMITY + TRIGGER
+  ═════════════════════════════════════ */
+  function checkProximity(){
+    if(!vrActive) return;
+    const dx=camera.position.x-gerabahGroup.position.x;
+    const dz=camera.position.z-gerabahGroup.position.z;
+    const dist=Math.sqrt(dx*dx+dz*dz);
+    const prompt=document.getElementById('proximity-prompt');
+    const gazeRing=document.getElementById('gaze-ring');
+    if(dist<2.5){
+      nearGerabah=true;
+      prompt.innerHTML = gerabahFound
+        ? '<span class="prompt-key">E</span> Lihat Detail'
+        : '<span class="prompt-key">E</span> Ambil Artefak';
+      prompt.style.display='block';
+      gazeRing.style.display='block';
+    } else {
+      nearGerabah=false;
+      prompt.style.display='none';
+      gazeRing.style.display='none';
+    }
+  }
+
+  function triggerArtifactFound(){
+    // Hide prompt immediately to prevent double-fire while screen transitions
+    document.getElementById('proximity-prompt').style.display='none';
+    document.getElementById('gaze-ring').style.display='none';
+    nearGerabah=false; // will re-set naturally once player moves/returns
+
+    if(!gerabahFound){
+      // First time — show toast, then open inspect
+      gerabahFound=true;
+      const toast=document.getElementById('artifact-toast');
+      toast.classList.add('show');
+      setTimeout(()=>{
+        toast.classList.remove('show');
+        setTimeout(()=>{
+          if(vrActive) document.exitPointerLock();
+          document.getElementById('btn-to-quiz').style.display='';
+          goTo('artifact');
+        },350);
+      }, 2000);
+    } else {
+      // Re-inspect — open inspect directly
+      if(vrActive) document.exitPointerLock();
+      document.getElementById('btn-to-quiz').style.display = quizDone ? 'none' : '';
+      goTo('artifact');
+    }
+  }
+
+  /* ═════════════════════════════════════
+     VR CONTROLLER STICKS (2D canvas overlay)
+  ═════════════════════════════════════ */
+  const ctrlL = document.getElementById('ctrl-left');
+  const ctrlR = document.getElementById('ctrl-right');
+  const cL = ctrlL.getContext('2d');
+  const cR = ctrlR.getContext('2d');
+
+  /* Controller state — driven by keys */
+  const ctrl = {
+    /* thumbstick deflection: -1..1 */
+    lx: 0, ly: 0,  // left stick (strafe / forward)
+    rx: 0, ry: 0,  // right stick (yaw — cosmetic only)
+    trigger: false, grip: false
+  };
+
+  function drawController(ctx, W, H, isLeft, state) {
+    ctx.clearRect(0, 0, W, H);
+
+    const mx = W / 2;
+
+    // ── Body shell ──
+    // Main grip body
+    const bodyGrad = ctx.createLinearGradient(mx - 28, 60, mx + 28, 60);
+    bodyGrad.addColorStop(0,   '#2a2420');
+    bodyGrad.addColorStop(0.4, '#3d3530');
+    bodyGrad.addColorStop(1,   '#1a1614');
+    ctx.fillStyle = bodyGrad;
+    ctx.beginPath();
+    ctx.moveTo(mx - 26, 55);
+    ctx.bezierCurveTo(mx - 30, 55, mx - 32, 70, mx - 26, 130);
+    ctx.bezierCurveTo(mx - 22, 155, mx + 22, 155, mx + 26, 130);
+    ctx.bezierCurveTo(mx + 32, 70, mx + 30, 55, mx + 26, 55);
+    ctx.closePath();
+    ctx.fill();
+
+    // Body highlight edge
+    ctx.strokeStyle = 'rgba(201,154,61,0.18)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // ── Top ring / guard ──
+    const ringGrad = ctx.createRadialGradient(mx, 42, 10, mx, 42, 38);
+    ringGrad.addColorStop(0,   '#4a3f34');
+    ringGrad.addColorStop(0.7, '#2e2620');
+    ringGrad.addColorStop(1,   '#1a1410');
+    ctx.fillStyle = ringGrad;
+    ctx.beginPath();
+    ctx.ellipse(mx, 42, 38, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201,154,61,0.25)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Ring inner bevel
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(mx, 43, 30, 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ── Thumbstick ──
+    const sx = isLeft ? state.lx : state.rx;
+    const sy = isLeft ? state.ly : state.ry;
+    const stickBaseX = mx + (isLeft ? -8 : 8);
+    const stickBaseY = 43;
+    const stickMaxR  = 9;
+    const stickX = stickBaseX + sx * stickMaxR;
+    const stickY = stickBaseY + sy * stickMaxR;
+
+    // Stick socket
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.ellipse(stickBaseX, stickBaseY, 11, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Stick cap shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath();
+    ctx.ellipse(stickX + 1, stickY + 2, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Stick cap
+    const stickGrad = ctx.createRadialGradient(stickX - 2, stickY - 2, 1, stickX, stickY, 9);
+    stickGrad.addColorStop(0,   '#7a6a5a');
+    stickGrad.addColorStop(0.5, '#4a3f34');
+    stickGrad.addColorStop(1,   '#2a2018');
+    ctx.fillStyle = stickGrad;
+    ctx.beginPath();
+    ctx.ellipse(stickX, stickY, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Stick rim highlight
+    ctx.strokeStyle = 'rgba(201,154,61,0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(stickX, stickY, 8, 6, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // ── Buttons (A/B on right, X/Y on left) ──
+    const btnLabels = isLeft ? ['X','Y'] : ['A','B'];
+    const btnColors = isLeft
+      ? ['#4488cc','#cc4444']
+      : ['#44aa66','#ccaa22'];
+    const btnPositions = isLeft
+      ? [[mx + 14, 46], [mx + 20, 37]]
+      : [[mx - 14, 46], [mx - 20, 37]];
+
+    btnLabels.forEach((lbl, i) => {
+      const [bx, by] = btnPositions[i];
+      ctx.fillStyle = btnColors[i];
+      ctx.shadowColor = btnColors[i];
+      ctx.shadowBlur = 4;
+      ctx.beginPath();
+      ctx.arc(bx, by, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.font = 'bold 6px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(lbl, bx, by + 0.5);
+    });
+
+    // ── Trigger (top front of body) ──
+    const trigActive = state.trigger;
+    const trigGrad = ctx.createLinearGradient(mx - 18, 58, mx + 18, 75);
+    trigGrad.addColorStop(0, trigActive ? '#8a6520' : '#3a3028');
+    trigGrad.addColorStop(1, trigActive ? '#c99a3d' : '#222018');
+    ctx.fillStyle = trigGrad;
+    ctx.beginPath();
+    ctx.moveTo(mx - 18, 60);
+    ctx.quadraticCurveTo(mx, 52, mx + 18, 60);
+    ctx.quadraticCurveTo(mx + 14, 75, mx, 77);
+    ctx.quadraticCurveTo(mx - 14, 75, mx - 18, 60);
+    ctx.fill();
+    if (trigActive) {
+      ctx.strokeStyle = 'rgba(201,154,61,0.6)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // ── Grip indicator lines on handle ──
+    for (let i = 0; i < 4; i++) {
+      const gy = 90 + i * 12;
+      ctx.strokeStyle = state.grip
+        ? 'rgba(201,154,61,0.4)'
+        : 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(mx - 20 + i, gy);
+      ctx.lineTo(mx + 20 - i, gy);
+      ctx.stroke();
+    }
+
+    // ── Gold accent ring at top ──
+    ctx.strokeStyle = 'rgba(201,154,61,0.45)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(mx, 42, 36, 17, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // ── Wrist strap hint ──
+    ctx.fillStyle = 'rgba(201,154,61,0.15)';
+    ctx.beginPath();
+    ctx.roundRect(mx - 6, 148, 12, 8, 3);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(201,154,61,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  /* Update ctrl state from keys each frame */
+  function updateControllerState() {
+    // Left stick: WASD
+    ctrl.lx = (keys['KeyD']||keys['ArrowRight'] ? 1 : 0) - (keys['KeyA']||keys['ArrowLeft'] ? 1 : 0);
+    ctrl.ly = (keys['KeyS']||keys['ArrowDown']  ? 1 : 0) - (keys['KeyW']||keys['ArrowUp']   ? 1 : 0);
+    // Right stick: mouse movement sim — we'll use a small yaw-delta visual
+    ctrl.rx = 0; ctrl.ry = 0; // static unless mouse moving; cosmetic
+    ctrl.trigger = keys['KeyE'] || false;
+    ctrl.grip    = keys['ShiftLeft'] || keys['ShiftRight'] || false;
+  }
+
+  /* ═════════════════════════════════════
+     ANIMATION LOOP
+  ═════════════════════════════════════ */
+  const clock    = new THREE.Clock();
+  const euler    = new THREE.Euler(0,0,0,'YXZ');
+  const yawEuler = new THREE.Euler(0,0,0,'YXZ');
+  const moveDir  = new THREE.Vector3();
+  const BOUND    = 21;
+  const DIRS     = ['U','UL','L','BL','B','BR','R','UR'];
+
+  function animate(){
+    requestAnimationFrame(animate);
+    const dt=Math.min(clock.getDelta(),.05);
+    const t=clock.getElapsedTime();
+
+    /* ── Object animations ── */
+    // Gerabah glow pulse
+    gerabahGlow.intensity = gerabahFound ? 0 : 1.8+Math.sin(t*2.8)*.7;
+    // Gerabah gentle bob
+    gerabahGroup.position.y = Math.sin(t*.7)*.025;
+    // Rim spin
+    rimMesh.rotation.z = t*.5;
+
+    // NPC idle — sway + breathe
+    npcGroup.rotation.y = -.5+Math.sin(t*.4)*.04;
+    bodyMesh.rotation.z  = Math.sin(t*.6)*.018;
+    headMesh.position.y  = 1.72+Math.sin(t*.8)*.012;
+
+    // Torch flicker
+    torches.forEach((tl,i)=>{
+      tl.intensity=2.4+Math.sin(t*(3.1+i*.37)+i*1.3)*.6;
+    });
+
+    // Firefly drift
+    particles.rotation.y = t*.01;
+    const pa=particles.geometry.attributes.position.array;
+    for(let i=0;i<PC;i++){
+      pa[i*3+1]=.2+((Math.sin(t*.35+i*.8)+1)*.5)*5;
+    }
+    particles.geometry.attributes.position.needsUpdate=true;
+
+    // Smoke wisps
+    npcLight.intensity=1.0+Math.sin(t*1.4)*.3;
+
+    /* ── Player movement ── */
+    if(vrActive){
+      euler.set(pitch,yaw,0);
+      camera.quaternion.setFromEuler(euler);
+
+      const sprint=keys['ShiftLeft']||keys['ShiftRight'];
+      const speed =sprint?7.2:3.8;
+      moveDir.set(0,0,0);
+      if(keys['KeyW']||keys['ArrowUp'])    moveDir.z-=1;
+      if(keys['KeyS']||keys['ArrowDown'])  moveDir.z+=1;
+      if(keys['KeyA']||keys['ArrowLeft'])  moveDir.x-=1;
+      if(keys['KeyD']||keys['ArrowRight']) moveDir.x+=1;
+      if(moveDir.length()>0){
+        moveDir.normalize();
+        yawEuler.set(0,yaw,0);
+        moveDir.applyEuler(yawEuler);
+        camera.position.addScaledVector(moveDir,speed*dt);
+      }
+      camera.position.x=Math.max(-BOUND,Math.min(BOUND,camera.position.x));
+      camera.position.z=Math.max(-BOUND,Math.min(BOUND,camera.position.z));
+      camera.position.y=1.7;
+
+      // HUD
+      document.getElementById('px').textContent='X '+camera.position.x.toFixed(1);
+      document.getElementById('pz').textContent='Z '+camera.position.z.toFixed(1);
+      document.getElementById('spd').textContent=sprint?'⚡ Lari':'🚶 Jalan';
+
+      // Compass
+      const deg=Math.round((((-yaw*180/Math.PI)%360)+360)%360);
+      const di=Math.round(deg/45)%8;
+      document.getElementById('compass-dir').textContent=DIRS[di];
+      document.getElementById('compass-deg').textContent=deg+'°';
+
+      checkProximity();
+
+      // Draw VR controllers
+      updateControllerState();
+      drawController(cL, 160, 200, true,  ctrl);
+      drawController(cR, 160, 200, false, ctrl);
+
+      // Minimap
+      drawMinimap(mmCtx,110,110,2.6);
+    }
+
+    renderer.render(scene,camera);
+  }
+  animate();
+}
+
+/* ─── VR Timer ─── */
+function startVRTimer(){
+  vrTimer=setInterval(()=>{
+    if(!vrActive) return;
+    timerSeconds=Math.max(0,timerSeconds-1);
+    const m=Math.floor(timerSeconds/60), s=timerSeconds%60;
+    const el=document.getElementById('timer-label');
+    if(el) el.textContent=m+':'+String(s).padStart(2,'0');
+  },1000);
+}
+</script>
+</body>
+</html>
