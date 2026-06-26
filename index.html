@@ -69,13 +69,22 @@ h1,h2,h3,h4{font-family:var(--font-display);margin:0;}
     radial-gradient(1px 1px at 3%  45%,rgba(255,255,255,.8),transparent);
   opacity:.7;
 }
+
+/* ── Roof elements updated for seamless connection ── */
 .onb-roof{
   width:140px;height:34px;
   background:linear-gradient(180deg,var(--gold-300),var(--gold-700));
   clip-path:polygon(50% 0%,100% 100%,0% 100%);
-  margin:14px auto 0;position:relative;
+  margin:0 auto;position:relative;
 }
-.onb-roof-base{width:176px;height:7px;margin:0 auto 0;background:var(--gold-500);border-radius:2px;}
+.onb-roof-base{
+  width:176px;height:7px;
+  margin:0 auto -1px;
+  background:var(--gold-500);
+  border-radius:4px 4px 0 0;
+  position:relative;
+  z-index:3;
+}
 
 /* ══════════ SCREEN 1: ONBOARDING ══════════ */
 #scr-onboard{
@@ -83,7 +92,7 @@ h1,h2,h3,h4{font-family:var(--font-display);margin:0;}
   background:radial-gradient(ellipse at 50% 0%,#1c2c52,#0F1830 60%,#0a1224 100%);
   color:var(--cream-100);
 }
-.onb-brand{position:relative;z-index:2;text-align:center;margin-bottom:34px;}
+.onb-brand{position:relative;z-index:2;text-align:center;margin-bottom:24px;}
 
 .kalib-card{
   position:relative;z-index:2;width:430px;
@@ -509,111 +518,96 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════
-     SCREEN 1: ONBOARDING + KALIBRASI
-══════════════════════════════════════════════════════ -->
 <div class="screen active" id="scr-onboard">
   <div class="stars"></div>
 
-  <div class="onb-brand" style="position:relative;z-index:2;text-align:center;margin-bottom:34px;">
+  <div class="onb-brand" style="position:relative;z-index:2;text-align:center;margin-bottom:24px;">
     <span class="eyebrow" style="color:var(--gold-300);font-size:12px;">CAKRAWALA NUSANTARA</span>
     <p style="font-style:italic;font-size:12px;opacity:.65;color:var(--cream-100);margin-top:5px;">
       Wahana Pembelajaran Imersif Sejarah &amp; Budaya Nusantara
     </p>
+  </div>
+
+  <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:2;">
     <div class="onb-roof"></div>
     <div class="onb-roof-base"></div>
-  </div>
-
-  <div class="kalib-card">
-    <h2 style="font-size:22px;text-align:center;">Kalibrasi Awal</h2>
-    <p style="font-size:12px;text-align:center;color:var(--andesit-700);margin-top:6px;">Sesuaikan preferensi untuk pengalaman terbaik</p>
-    <hr/>
-    <!-- Height calibration -->
-    <div style="font-size:11px;font-family:var(--font-mono);color:var(--andesit-500);margin-bottom:6px;">TINGGI PANDANG</div>
-    <div class="height-row">
-      <div class="height-slider-wrap">
-        <input id="heightSlider" class="vert" type="range" min="150" max="190" value="165"/>
-        <div class="height-val"><span id="heightVal">165</span><small style="font-size:9px;font-weight:400;display:block;opacity:.7;">CM</small></div>
+    <div class="kalib-card">
+      <h2 style="font-size:22px;text-align:center;">Kalibrasi Awal</h2>
+      <p style="font-size:12px;text-align:center;color:var(--andesit-700);margin-top:6px;">Sesuaikan preferensi untuk pengalaman terbaik</p>
+      <hr/>
+      <div style="font-size:11px;font-family:var(--font-mono);color:var(--andesit-500);margin-bottom:6px;">TINGGI PANDANG</div>
+      <div class="height-row">
+        <div class="height-slider-wrap">
+          <input id="heightSlider" class="vert" type="range" min="150" max="190" value="165"/>
+          <div class="height-val"><span id="heightVal">165</span><small style="font-size:9px;font-weight:400;display:block;opacity:.7;">CM</small></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="width:16px;height:68px;background:linear-gradient(180deg,var(--andesit-300),var(--andesit-500));border-radius:8px 8px 3px 3px;"></div>
+          <div style="font-size:9px;font-family:var(--font-mono);color:var(--andesit-500);">SKALA</div>
+        </div>
       </div>
-      <!-- Silhouette indicator -->
-      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-        <div style="width:16px;height:68px;background:linear-gradient(180deg,var(--andesit-300),var(--andesit-500));border-radius:8px 8px 3px 3px;"></div>
-        <div style="font-size:9px;font-family:var(--font-mono);color:var(--andesit-500);">SKALA</div>
+      <div style="font-size:11px;font-family:var(--font-mono);color:var(--andesit-500);margin-bottom:6px;">KONTROL &amp; AKSESIBILITAS</div>
+      <div class="opt-grid">
+        <div class="opt on">Smooth<br>Locomotion</div>
+        <div class="opt">Snap<br>Rotation</div>
+        <div class="opt on">Getaran<br>Haptic</div>
+        <div class="opt on">Subtitle<br>Wajib</div>
       </div>
-    </div>
-    <!-- Options -->
-    <div style="font-size:11px;font-family:var(--font-mono);color:var(--andesit-500);margin-bottom:6px;">KONTROL &amp; AKSESIBILITAS</div>
-    <div class="opt-grid">
-      <div class="opt on">Smooth<br>Locomotion</div>
-      <div class="opt">Snap<br>Rotation</div>
-      <div class="opt on">Getaran<br>Haptic</div>
-      <div class="opt on">Subtitle<br>Wajib</div>
-    </div>
-    <div class="kalib-actions">
-      <button class="btn-primary" onclick="goTo('map')">MULAI KALIBRASI</button>
-      <button class="btn-ghost" onclick="goTo('map')">Lewati</button>
+      <div class="kalib-actions">
+        <button class="btn-primary" onclick="goTo('map')">MULAI KALIBRASI</button>
+        <button class="btn-ghost" onclick="goTo('map')">Lewati</button>
+      </div>
     </div>
   </div>
 
-  <!-- Status pill -->
   <div style="position:absolute;top:18px;right:18px;z-index:3;">
     <span class="pill" style="background:rgba(79,122,107,.28);color:var(--jade-300);border:1px solid var(--jade-500);">● HEADSET OK</span>
   </div>
-  <!-- Bottom control hints -->
   <div class="ctrl-hints">
     <span><span class="ctrl-dot">◎</span> &nbsp;Trigger — Pilih objek</span>
     <span>Grip — Genggam &amp; putar &nbsp;<span class="ctrl-dot">◎</span></span>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SCREEN 2: PETA DUNIA
-══════════════════════════════════════════════════════ -->
 <div class="screen" id="scr-map">
   <div class="stars"></div>
 
   <div class="map-head">
     <span class="eyebrow" style="color:var(--terra-300);">PETA DUNIA</span>
     <h2 style="font-size:24px;color:var(--cream-100);margin-top:4px;">Pilih Modul Eksplorasi</h2>
-    <div class="onb-roof" style="margin:12px 0 0;"></div>
-    <div class="onb-roof-base" style="margin:0;"></div>
   </div>
 
-  <!-- Globe -->
   <div class="globe" style="position:relative;z-index:2;">
     <div class="ring"></div>
     <div class="ring r2"></div>
     <div class="island" style="left:16%;top:40%;width:115px;height:46px;"></div>
     <div class="island" style="left:43%;top:52%;width:88px;height:34px;"></div>
     <div class="island" style="left:65%;top:46%;width:72px;height:30px;"></div>
-    <!-- Active marker -->
     <div class="marker" style="left:21%;top:36%;" onclick="selectModule('trowulan')" title="Trowulan"></div>
-    <!-- Locked markers -->
     <div class="marker locked" style="left:48%;top:48%;" title="Borobudur — Segera Hadir"></div>
     <div class="marker locked" style="left:70%;top:43%;" title="Sangiran — Segera Hadir"></div>
   </div>
 
-  <!-- Module card -->
-  <div class="module-card" id="module-card" style="position:relative;z-index:2;">
-    <h3 style="font-size:19px;">Trowulan — Pusat Majapahit</h3>
-    <div class="module-thumb"><div class="silhouette"></div></div>
-    <div class="module-meta">ABAD XIV M — ERA HAYAM WURUK</div>
-    <p>Jelajahi alun-alun kerajaan, temui abdi istana, dan temukan 3 artefak kunci dalam misi pertamamu.</p>
-    <div class="module-tags">
-      <span class="tag jade">★ 15–20 MENIT</span>
-      <span class="tag terra">PEMULA</span>
+  <div style="display:flex; flex-direction:column; align-items:center; position:relative; z-index:2;">
+    <div class="onb-roof"></div>
+    <div class="onb-roof-base"></div>
+    <div class="module-card" id="module-card">
+      <h3 style="font-size:19px;">Trowulan — Pusat Majapahit</h3>
+      <div class="module-thumb"><div class="silhouette"></div></div>
+      <div class="module-meta">ABAD XIV M — ERA HAYAM WURUK</div>
+      <p>Jelajahi alun-alun kerajaan, temui abdi istana, dan temukan 3 artefak kunci dalam misi pertamamu.</p>
+      <div class="module-tags">
+        <span class="tag jade">★ 15–20 MENIT</span>
+        <span class="tag terra">PEMULA</span>
+      </div>
+      <button class="btn-primary" style="width:100%;padding:13px;" onclick="startExplore()">MULAI EKSPLORASI →</button>
     </div>
-    <button class="btn-primary" style="width:100%;padding:13px;" onclick="startExplore()">MULAI EKSPLORASI →</button>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SCREEN 3: 3D EXPLORATION (Three.js)
-══════════════════════════════════════════════════════ -->
 <div class="screen" id="scr-explore">
   <canvas id="vr-canvas"></canvas>
 
-  <!-- Start overlay -->
   <div id="vr-overlay">
     <div class="vr-icon-ring">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="rgba(232,196,104,.9)" stroke-width="1.8" stroke-linecap="round">
@@ -631,7 +625,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
     </div>
   </div>
 
-  <!-- Crosshair -->
   <svg id="crosshair" width="20" height="20" viewBox="0 0 20 20">
     <line x1="10" y1="3" x2="10" y2="8"  stroke="rgba(232,196,104,.7)" stroke-width="1.4"/>
     <line x1="10" y1="12" x2="10" y2="17" stroke="rgba(232,196,104,.7)" stroke-width="1.4"/>
@@ -640,12 +633,10 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
     <circle cx="10" cy="10" r="1" fill="rgba(232,196,104,.6)"/>
   </svg>
 
-  <!-- Gaze ring (shows when near interactable) -->
   <div id="gaze-ring">
     <svg viewBox="0 0 52 52"><circle class="bg" cx="26" cy="26" r="22" fill="none" stroke-width="2.5"/><circle class="fg" cx="26" cy="26" r="22" fill="none" stroke-width="2.5"/></svg>
   </div>
 
-  <!-- Mission HUD -->
   <div id="mission-hud">
     <span class="eyebrow">MISI: TROWULAN</span>
     <ul>
@@ -655,13 +646,11 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
     </ul>
   </div>
 
-  <!-- Timer -->
   <div id="timer-hud">
     <span class="timer-dot"></span>
     <span id="timer-label">12:48</span>&nbsp;TERSISA
   </div>
 
-  <!-- Compass -->
   <div id="compass-hud">
     <div id="compass-inner">
       <span class="compass-needle"></span>
@@ -670,28 +659,23 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
     </div>
   </div>
 
-  <!-- Hint bar -->
   <div id="hud-hint">WASD = Gerak &nbsp;·&nbsp; Mouse = Lihat &nbsp;·&nbsp; Shift = Lari &nbsp;·&nbsp; E = Interaksi &nbsp;·&nbsp; Tab = Menu Gelang</div>
 
-  <!-- Position -->
   <div id="hud-pos">
     <span id="px">X 0</span>
     <span id="pz">Z 0</span>
     <span id="spd" style="color:var(--gold-300);">Jalan</span>
   </div>
 
-  <!-- Minimap -->
   <div id="minimap">
     <span class="minimap-label">PETA MINI</span>
     <canvas id="minimap-canvas" width="110" height="110"></canvas>
   </div>
 
-  <!-- Proximity prompt -->
   <div id="proximity-prompt">
     <span class="prompt-key">E</span> Ambil Artefak
   </div>
 
-  <!-- Wrist trigger button -->
   <button id="wrist-trigger" title="Menu Gelang (Tab)">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--gold-300)" stroke-width="2">
       <rect x="3" y="9" width="18" height="9" rx="2"/>
@@ -699,7 +683,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
     </svg>
   </button>
 
-  <!-- Wrist menu -->
   <div id="wrist-menu">
     <div class="wrist-tabs">
       <button class="wtab active" onclick="switchWristTab('misi',this)">MISI</button>
@@ -708,7 +691,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
       <button onclick="closeWristMenu()" style="margin-left:auto;background:transparent;border:none;color:rgba(232,196,104,.55);font-size:17px;cursor:pointer;padding:0 2px;line-height:1;" title="Tutup menu">✕</button>
     </div>
 
-    <!-- Tab: MISI -->
     <div class="wrist-panel active" id="wm-misi">
       <span class="eyebrow" style="color:var(--gold-300);">MENU GELANG</span>
       <hr/>
@@ -726,7 +708,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
       </div>
     </div>
 
-    <!-- Tab: PETA -->
     <div class="wrist-panel" id="wm-peta">
       <span class="eyebrow" style="color:var(--gold-300);">PETA AREA TROWULAN</span>
       <hr/>
@@ -736,7 +717,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
       </div>
     </div>
 
-    <!-- Tab: PENGATURAN -->
     <div class="wrist-panel" id="wm-set">
       <span class="eyebrow" style="color:var(--gold-300);">PENGATURAN SESI</span>
       <hr/>
@@ -751,7 +731,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
     </div>
   </div>
 
-  <!-- NPC dialogue -->
   <div id="npc-dialogue">
     <div class="who">ABDI ISTANA · KEPALA PENGRAJIN</div>
     <div style="font-size:13px;line-height:1.6;">
@@ -762,19 +741,14 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
     </div>
   </div>
 
-  <!-- Artifact found toast -->
   <div id="artifact-toast">⬡ &nbsp;Artefak ditemukan — Gerabah Istana</div>
 
-  <!-- VR Controller Sticks -->
   <div id="vr-controllers">
     <div class="ctrl-hand left" ><canvas id="ctrl-left"  width="160" height="200"></canvas></div>
     <div class="ctrl-hand right"><canvas id="ctrl-right" width="160" height="200"></canvas></div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SCREEN 4: ARTIFACT INSPECT
-══════════════════════════════════════════════════════ -->
 <div class="screen" id="scr-artifact">
   <span class="pill inspect-pill">MODE INSPEKSI</span>
   <div class="artifact-col">
@@ -816,9 +790,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SCREEN 5: QUIZ
-══════════════════════════════════════════════════════ -->
 <div class="screen" id="scr-quiz">
   <div class="stars"></div>
   <span class="pill quiz-pill">KUIS MISI · TROWULAN</span>
@@ -831,7 +802,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
       <button class="btn-primary" id="quiz-next-btn" style="display:none;" onclick="nextQuiz()">Lanjut →</button>
     </div>
   </div>
-  <!-- Progress bar -->
   <div style="position:absolute;bottom:32px;left:50%;transform:translateX(-50%);width:180px;text-align:center;">
     <div style="height:4px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;margin-bottom:8px;">
       <div id="quiz-progress-fill" style="height:100%;background:var(--gold-500);border-radius:999px;width:0%;transition:width .4s;"></div>
@@ -840,9 +810,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SCREEN 6: BADGE / SELESAI
-══════════════════════════════════════════════════════ -->
 <div class="screen" id="scr-badge">
   <div class="badge-medal">
     <div class="badge-ring"></div>
@@ -869,7 +836,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
     <button class="btn-primary" onclick="goTo('map')">Modul Lain →</button>
   </div>
 
-  <!-- Next modules teaser -->
   <div>
     <div style="font-family:var(--font-mono);font-size:11px;opacity:.5;text-align:center;margin-bottom:10px;letter-spacing:.06em;">MODUL BERIKUTNYA</div>
     <div class="badge-next-modules">
@@ -880,9 +846,6 @@ input[type=range].vert{writing-mode:vertical-lr;direction:rtl;width:8px;height:9
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     SCRIPTS
-══════════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 'use strict';
